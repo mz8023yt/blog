@@ -98,9 +98,9 @@ index_with_subtitle: false
 menu:
   home: / || home
   categories: /categories/ || th
-  about: /about/ || user
-  #tags: /tags/ || tags
+  tags: /tags/ || tags
   archives: /archives/ || archive
+  about: /about/ || user
   #schedule: /schedule/ || calendar
   #sitemap: /sitemap.xml || sitemap
   #commonweal: /404/ || heartbeat
