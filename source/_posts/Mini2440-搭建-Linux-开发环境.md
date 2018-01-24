@@ -64,8 +64,7 @@ Enter the number:
 
 #### 手动安装 OpenJTAG 驱动
 
-OpenJATG 驱动程序路径：JZ2440光盘\烧写工具\裸机\eop&op\驱动\OpenJTAG\*
-
+OpenJATG 驱动程序路径：JZ2440光盘\烧写工具\裸机\eop&op\驱动\OpenJTAG\*  
 将 OpenJTAG 插入电脑 -> 右键我的电脑 -> 管理 -> 设备管理器。可以看到其他设备里面有两个 USB <==> JTAG&&RS232 设备，但是旁边有感叹号，说明这两个设备并没有驱动。
 
 ![图1](https://raw.githubusercontent.com/mz8023yt/blog/master/image/mini2440/build_the_dev_env/01.png)
@@ -78,10 +77,8 @@ OpenJATG 驱动程序路径：JZ2440光盘\烧写工具\裸机\eop&op\驱动\Ope
 #### 解决 OpenJTAG 驱动安装不上的问题
 
 百度查了一下，原因是因为老设备的驱动没有更新，和新系统 Win 8 或 Win 10 系统不兼容，没得到数字签名通过。要正常安装驱动程序，需要强制关闭数字签名。
-
 怎么操作：  
-开始菜单 -> 设置 -> 更新和安全 -> 恢复 -> 立即重启 -> 疑难解答 -> 高级选项 -> 启动设置 -> 重启 -> 电脑重启后，出现选择界面，F7选择禁止验证驱动签名。
-
+开始菜单 -> 设置 -> 更新和安全 -> 恢复 -> 立即重启 -> 疑难解答 -> 高级选项 -> 启动设置 -> 重启 -> 电脑重启后，出现选择界面，F7选择禁止验证驱动签名。  
 设置好之后，重新手动安装，注意这里需要安装三次驱动。分别是：
 
 ![图3](https://raw.githubusercontent.com/mz8023yt/blog/master/image/mini2440/build_the_dev_env/03.png)
@@ -94,8 +91,7 @@ OpenJATG 驱动程序路径：JZ2440光盘\烧写工具\裸机\eop&op\驱动\Ope
 
 #### 使用 oflash 开始烧写 superboot
 
-superboot 镜像路径：mini2440光盘\images\Superboot2440.bin
-
+superboot 镜像路径：mini2440光盘\images\Superboot2440.bin  
 开发板上电(不管是 nor 还是 nand 启动都行)，使用 OpenJTAG 连接好开发板和电脑，运行 cmd 程序，切换到 superboot 所在目录，依次执行：
 
 ```bash
@@ -173,8 +169,7 @@ Hello USB Loop
 
 ### 2.1 安装 miniTools 工具
 
-miniTools 安装包路径：mini2440光盘\windows平台工具\MiniTools-USB下载工具\MiniToolsSetup-Windows-20150528.exe
-
+miniTools 安装包路径：mini2440光盘\windows平台工具\MiniTools-USB下载工具\MiniToolsSetup-Windows-20150528.exe  
 Windows 平台下安装 MiniTools 工具，双击安装即可。安装好后桌面会出现 miniTools 应用的图标，双击执行效果为：
 
 ![图6](https://raw.githubusercontent.com/mz8023yt/blog/master/image/mini2440/build_the_dev_env/06.png)
@@ -182,10 +177,8 @@ Windows 平台下安装 MiniTools 工具，双击安装即可。安装好后桌�
 ### 2.2 安装 mini2440 驱动程序
 
 mini2440 usb 驱动程序路径：  
-mini2440光盘\windows平台工具\usb下载驱动\FriendlyARM USB Download Driver Setup_20090421.exe
-
-直接安装无法安装上，同样需要用 usb 线连接好了 mini2440 后在设备管理器下手动去安装驱动，针对 Win 8 和 Win 10 也是需要强制关闭数字签名后才能安装的上。
-
+mini2440光盘\windows平台工具\usb下载驱动\FriendlyARM USB Download Driver Setup_20090421.exe  
+直接安装无法安装上，同样需要用 usb 线连接好了 mini2440 后在设备管理器下手动去安装驱动，针对 Win 8 和 Win 10 也是需要强制关闭数字签名后才能安装的上。  
 驱动安装成功后设备管理器截图：
 
 ![图7](https://raw.githubusercontent.com/mz8023yt/blog/master/image/mini2440/build_the_dev_env/07.png)
@@ -381,8 +374,7 @@ user@vmware:~/workspace/mini2440/linux-2.6.32.2$ make
   UPD     include/linux/utsrelease.h
   SYMLINK include/asm -> include/asm-arm
   CC      kernel/bounds.s
-/opt/FriendlyARM/toolschain/4.4.3/libexec/gcc/arm-none-linux-gnueabi/4.4.3/cc1: error while loading shared libraries: libstdc++.so.6: cannot open
-shared object file: No such file or directory
+/opt/FriendlyARM/toolschain/4.4.3/libexec/gcc/arm-none-linux-gnueabi/4.4.3/cc1: error while loading shared libraries: libstdc++.so.6: cannot open shared object file: No such file or directory
 /home/user/workspace/mini2440/linux-2.6.32.2/./Kbuild:35: recipe for target 'kernel/bounds.s' failed
 make[1]: *** [kernel/bounds.s] Error 1
 Makefile:982: recipe for target 'prepare0' failed
@@ -404,10 +396,8 @@ user@vmware:~/workspace/mini2440/linux-2.6.32.2$ make
   CC      kernel/exit.o
   CC      kernel/itimer.o
   TIMEC   kernel/timeconst.h
-Can't use 'defined(@array)' (Maybe you should just omit the defined()?) at k
-ernel/timeconst.pl line 373.
-/home/user/workspace/mini2440/linux-2.6.32.2/kernel/Makefile:129: recipe for
- target 'kernel/timeconst.h' failed
+Can't use 'defined(@array)' (Maybe you should just omit the defined()?) at kernel/timeconst.pl line 373.
+/home/user/workspace/mini2440/linux-2.6.32.2/kernel/Makefile:129: recipe for target 'kernel/timeconst.h' failed
 make[1]: *** [kernel/timeconst.h] Error 255
 Makefile:878: recipe for target 'kernel' failed
 make: *** [kernel] Error 2
@@ -467,8 +457,7 @@ user@vmware:~$ sudo apt-get install nfs-common        # 安装 NFS 客户端
 
 #### 配置 nfs 共享目录
 
-安装完 NFS 服务器后，需要指定共享的 NFS 目录，其方法是在 "/etc/exports" 文件里面设置对应的目录及相应的访问权限，每一行对应一个设置。
-
+安装完 NFS 服务器后，需要指定共享的 NFS 目录，其方法是在 "/etc/exports" 文件里面设置对应的目录及相应的访问权限，每一行对应一个设置。  
 配置 /home/user/board/ 目录为 nfs 共享的目录，需要修改 "/etc/exports" 文件，添加一行：
 
 ```bash
