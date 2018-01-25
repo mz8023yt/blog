@@ -22,12 +22,13 @@ categories: Window
 用户名: c1ikm  
 注册码: AXMQX-RMMMJ-DBHHF-WIHTV
 
-### 4. VMware Workstation
+### 4. VMware Workstation 12
 
-VMware Workstation 12 许可证:  
-5A02H-AU243-TZJ49-GTC7K-3C61N
+许可证: 5A02H-AU243-TZJ49-GTC7K-3C61N
 
-VMware Workstation 14 许可证:  
+### 5. VMware Workstation 14
+
+许可证:  
 CG54H-D8D0H-H8DHY-C6X7X-N2KG6
 ZC3WK-AFXEK-488JP-A7MQX-XL8YF
 AC5XK-0ZD4H-088HP-9NQZV-ZG2R4
