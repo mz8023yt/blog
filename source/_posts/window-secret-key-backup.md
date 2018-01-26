@@ -8,25 +8,25 @@ categories: Window
 
 ## 一. 常用工具秘钥
 
-### 1. Xshell 5
+### 1.1 Xshell 5
 
 注册码: 101210-450789-147200
 
-### 2. UltraISO
+### 1.2 UltraISO
 
 用户名: 王涛  
 注册码: 7C81-1689-4046-626F
 
-### 3. FastStone Capture
+### 1.3 FastStone Capture
 
 用户名: c1ikm  
 注册码: AXMQX-RMMMJ-DBHHF-WIHTV
 
-### 4. VMware Workstation 12
+### 1.4 VMware Workstation 12
 
 许可证: 5A02H-AU243-TZJ49-GTC7K-3C61N
 
-### 5. VMware Workstation 14
+### 1.5 VMware Workstation 14
 
 许可证:  
 CG54H-D8D0H-H8DHY-C6X7X-N2KG6
@@ -54,10 +54,13 @@ DPH2V-TTNVB-4X9Q3-TJR4H-KHJW4
 
 ### 2.2 激活步骤
 
-1. 右键点击桌面左下角 windows，选择命令提示符(管理员)
-2. 输入命令：slmgr.vbs /upk，然后回车
-3. 输入命令：slmgr /ipk xxxx(xxxx为windows10专业版激活密钥)，然后回车
-4. 输入命令：slmgr /skms zh.us.to，然后回车
-5. 输入命令：slmgr /ato，然后回车
-6. 激活成功!
+使用管理员权限运行 cmd，执行以下命令进行激活操作。  
+如何使用管理员权限运行 cmd，在所有程序中搜索 cmd 程序，右键以管理员身份运行。
+
+```
+slmgr.vbs /upk
+slmgr /ipk NPPR9-FWDCX-D2C8J-H872K-2YT43
+slmgr /skms zh.us.to
+slmgr /ato
+```
 
