@@ -357,8 +357,8 @@ make: *** [menuconfig] Error 2
 报错了，提示说需要 ncurses 库，安装好库之后，成功配置。
 
 ```bash
-user@vmware:~/workspace/mini2440/linux-2.6.32.2$ sudo apt-get install libncu
-rses
+user@vmware:~/workspace/mini2440/linux-2.6.32.2$ sudo apt-get install libncurses
+user@vmware:~/workspace/mini2440/linux-2.6.32.2$ sudo apt-get install ncurses-dev
 ```
 
 进入图形化配置界面后，直接按 esc 退出即可，配置项已经拷贝到最终的配置文件 .config 文件中了，执行 make menuconfig 的作用，只是去自动生成 Makefile 和 c 语言宏控文件。
@@ -387,8 +387,7 @@ make: *** [prepare0] Error 2
 可是又报错了，提示说是找不到 libstdc++.so.6 这个库。安装一下试试：
 
 ```bash
-user@vmware:~/workspace/mini2440/linux-2.6.32.2$ sudo apt-get install lib32s
-tdc++6
+user@vmware:~/workspace/mini2440/linux-2.6.32.2$ sudo apt-get install lib32stdc++6
 ```
 
 库安装好了之后，果然可以开始编译了。
