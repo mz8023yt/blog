@@ -412,7 +412,7 @@ timezone:
 @@ -130,9 +130,9 @@ scheme: Gemini
  # Key is the link label showing to end users.
  # Value before `||` delimeter is the target permalink.
- # Value after `||` delimeter is the name of FontAwesome icon. 
+ # Value after `||` delimeter is the name of FontAwesome icon.
  #   If icon (with or without delimeter) is not specified, globe icon will be loaded.
 -#social:
 -  #GitHub: https://github.com/yourname || github
@@ -563,6 +563,88 @@ INFO  Created: ~/blog/source/categories/index.md
 
 ### 4.3 发布文章
 
+## 五. 重新搭建博客
 
+### 5.1 重装系统或者更换电脑
 
+之前描述的是在 ubuntu 环境下搭建博客环境，现在我买了一台  windows 主机或者说重装了一下系统，但是我想将我的博客源码移植到 windows 继续使用怎么办？  
+其实只要将之前的 blog 源码拷贝到新的电脑上，重新配置一下 nodejs、hexo、git 就好。
 
+### 5.2 重新搭建环境和从零开始的区别
+
+安装 nodejs 和 git 和之前一样，请参考第二章。唯一有区别的是 hexo 的安装。
+
+先不管那么多，执行 npm 命令安装 hexo 看看。
+
+```
+$ npm install -g hexo-cli
+C:\Users\mz802\AppData\Roaming\npm\hexo -> C:\Users\mz802\AppData\Roaming\npm\node_modules\hexo-cli\bin\hexo
+npm WARN optional SKIPPING OPTIONAL DEPENDENCY: fsevents@1.1.3 (node_modules\hexo-cli\node_modules\fsevents):
+npm WARN notsup SKIPPING OPTIONAL DEPENDENCY: Unsupported platform for fsevents@1.1.3: wanted {"os":"darwin","arch":"any"} (current: {"os":"win32","arch":"x64"})
+
++ hexo-cli@1.0.4
+added 217 packages in 18.824s
+```
+
+安装好了，看看版本信息确认一下，看看是不是 ok 了。
+
+```
+$ hexo -v
+ERROR Local hexo not found in E:\blog
+ERROR Try running: 'npm install hexo --save'
+```
+
+有问题？不过没有关系，提示不说叫我们试试 npm install hexo --save 命令吗，那不妨试一下。
+
+```
+$ npm install hexo --save
+
+> nunjucks@3.1.2 postinstall E:\blog\node_modules\hexo\node_modules\nunjucks
+> node postinstall-build.js src
+
+npm WARN optional SKIPPING OPTIONAL DEPENDENCY: fsevents@1.1.3 (node_modules\fsevents):
+npm WARN notsup SKIPPING OPTIONAL DEPENDENCY: Unsupported platform for fsevents@1.1.3: wanted {"os":"darwin","arch":"any"} (current: {"os":"win32","arch":"x64"})
+
++ hexo@3.5.0
+added 470 packages in 17.778s
+```
+
+成功了，再看看版本信息。
+
+```
+$ hexo -v
+hexo: 3.5.0
+hexo-cli: 1.0.4
+os: Windows_NT 10.0.16299 win32 x64
+http_parser: 2.7.0
+node: 8.9.3
+v8: 6.1.534.48
+uv: 1.15.0
+zlib: 1.2.11
+ares: 1.10.1-DEV
+modules: 57
+nghttp2: 1.25.0
+openssl: 1.0.2n
+icu: 59.1
+unicode: 9.0
+cldr: 31.0.1
+tz: 2017b
+```
+
+此时如果细心的话，不难发现，package-lock.json 和 package.json 文件有更新，这里自己去看看 git diff 吧，其实是 hexo 版本有变化，才更新到了这两个文件。
+
+## 六. 常见问题
+
+### 6.1 无法访问 localhost:4000
+
+hexo 安装成功，并且正确运行，但是执行 hexo s 的时候，出现 localhost:4000 不能访问。
+
+百度查了下原因是：  
+你的电脑端口被占用了，hexo 默认的端口是 4000，如果你的电脑安装了福昕阅读器，则 4000 端口已经被福昕阅读器使用了。
+解决方法是换个端口，使用 -p 选项可以指定端口号。
+
+```
+hexo s -p 5000
+```
+
+这里换成5000端口，访问 localhost:4000 正常访问。
