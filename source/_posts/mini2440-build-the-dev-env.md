@@ -70,12 +70,12 @@ Enter the number:
 OpenJATG 驱动程序路径：JZ2440光盘\烧写工具\裸机\eop&op\驱动\OpenJTAG\*  
 将 OpenJTAG 插入电脑 -> 右键我的电脑 -> 管理 -> 设备管理器。可以看到其他设备里面有两个 USB <==> JTAG&&RS232 设备，但是旁边有感叹号，说明这两个设备并没有驱动。
 
-![图1](https://raw.githubusercontent.com/mz8023yt/blog/master/image/mini2440/build_the_dev_env/01.png)
+![图1](https://raw.githubusercontent.com/mz8023yt/blog/master/image/mini2440/mini2440-build-the-dev-env/01.png)
 
 手动去安装 OpenJTAG 的驱动程序，右键 "USB <==> JTAG&&RS232" -> 更新驱动程序 -> 浏览计算机以查找驱动程序 -> 路径选择到 OpenJATG 驱动文件夹 -> 点击下一步，开始安装驱动。  
 但是，报了一个这样的错，文件的哈希值不在指定的目录文件。
 
-![图2](https://raw.githubusercontent.com/mz8023yt/blog/master/image/mini2440/build_the_dev_env/02.png)
+![图2](https://raw.githubusercontent.com/mz8023yt/blog/master/image/mini2440/mini2440-build-the-dev-env/02.png)
 
 #### 解决 OpenJTAG 驱动安装不上的问题
 
@@ -84,11 +84,11 @@ OpenJATG 驱动程序路径：JZ2440光盘\烧写工具\裸机\eop&op\驱动\Ope
 开始菜单 -> 设置 -> 更新和安全 -> 恢复 -> 立即重启 -> 疑难解答 -> 高级选项 -> 启动设置 -> 重启 -> 电脑重启后，出现选择界面，F7选择禁止验证驱动签名。  
 设置好之后，重新手动安装，注意这里需要安装三次驱动。分别是：
 
-![图3](https://raw.githubusercontent.com/mz8023yt/blog/master/image/mini2440/build_the_dev_env/03.png)
+![图3](https://raw.githubusercontent.com/mz8023yt/blog/master/image/mini2440/mini2440-build-the-dev-env/03.png)
 
-![图4](https://raw.githubusercontent.com/mz8023yt/blog/master/image/mini2440/build_the_dev_env/04.png)
+![图4](https://raw.githubusercontent.com/mz8023yt/blog/master/image/mini2440/mini2440-build-the-dev-env/04.png)
 
-![图5](https://raw.githubusercontent.com/mz8023yt/blog/master/image/mini2440/build_the_dev_env/05.png)
+![图5](https://raw.githubusercontent.com/mz8023yt/blog/master/image/mini2440/mini2440-build-the-dev-env/05.png)
 
 ### 1.4 下载 superboot 到 mini2440 开发板上
 
@@ -175,7 +175,7 @@ Hello USB Loop
 miniTools 安装包路径：mini2440光盘\windows平台工具\MiniTools-USB下载工具\MiniToolsSetup-Windows-20150528.exe  
 Windows 平台下安装 MiniTools 工具，双击安装即可。安装好后桌面会出现 miniTools 应用的图标，双击执行效果为：
 
-![图6](https://raw.githubusercontent.com/mz8023yt/blog/master/image/mini2440/build_the_dev_env/06.png)
+![图6](https://raw.githubusercontent.com/mz8023yt/blog/master/image/mini2440/mini2440-build-the-dev-env/06.png)
 
 ### 2.2 安装 mini2440 驱动程序
 
@@ -184,19 +184,19 @@ mini2440光盘\windows平台工具\usb下载驱动\FriendlyARM USB Download Driv
 直接安装无法安装上，同样需要用 usb 线连接好了 mini2440 后在设备管理器下手动去安装驱动，针对 Win 8 和 Win 10 也是需要强制关闭数字签名后才能安装的上。  
 驱动安装成功后设备管理器截图：
 
-![图7](https://raw.githubusercontent.com/mz8023yt/blog/master/image/mini2440/build_the_dev_env/07.png)
+![图7](https://raw.githubusercontent.com/mz8023yt/blog/master/image/mini2440/mini2440-build-the-dev-env/07.png)
 
 ### 2.3 使用 miniTools 给 mini2440 刷系统
 
 使用 usb 线连接好 mini2440 和电脑，mini2440 使用 nor 启动，然后运行 miniTools，此时显示的是开发板信息。
 
-![图8](https://raw.githubusercontent.com/mz8023yt/blog/master/image/mini2440/build_the_dev_env/08.png)
+![图8](https://raw.githubusercontent.com/mz8023yt/blog/master/image/mini2440/mini2440-build-the-dev-env/08.png)
 
 切换到 linux 选项下，直接选择从光盘目录中的 image 目录自动导入，然后修改好自己手头上 mini2440 搭配的屏即可开始烧写。  
 
 点击开始烧写，等待烧写完成。
 
-![图9](https://raw.githubusercontent.com/mz8023yt/blog/master/image/mini2440/build_the_dev_env/09.png)
+![图9](https://raw.githubusercontent.com/mz8023yt/blog/master/image/mini2440/mini2440-build-the-dev-env/09.png)
 
 ### 2.4 验证是否烧写成功
 
