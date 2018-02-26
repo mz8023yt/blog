@@ -130,13 +130,19 @@ cd /opt/thunderbird/
 
 ### 3.1 安装 ssh 服务
 
-#### ubuntu 下安装 ssh 服务器
+#### ssh 介绍
+
+SSH 为 Secure Shell 的缩写，由 IETF 的网络小组（Network Working Group）所制定；SSH 为建立在应用层基础上的安全协议。SSH 是目前较可靠，专为远程登录会话和其他网络服务提供安全性的协议。
+
+一般我们在 windows 主机上使用远程登陆工具(Xshell等)登陆 linux 主机都是使用的 ssh 协议。
+
+#### 安装 ssh 服务器
 
 ```
 user@vmware:~$ sudo apt-get install openssh-server
 ```
 
-#### 测试 ssh 服务器是否配置成功
+#### 测试 ssh 服务器
 
 配置好 windows 和 ubuntu 在同一个局域网中，在 windows 下安装 xshell 远程登录工具，远程登录到 ubuntu。看是否能够成功登陆。
 
@@ -146,7 +152,7 @@ user@vmware:~$ sudo apt-get install openssh-server
 
 NFS 即网络文件系统(Network File-System)，可以通过网络让不同机器、不同系统之间可以实现文件共享。通过 NFS，可以访问远程共享目录,就像访问本地磁盘一样。在 ubuntu 主机上安装 nfs 服务器，开发板便可以通过网络访问 ubuntu 主机上的共享的文件。
 
-#### ubuntu 下安装 nfs 服务器
+#### 安装 nfs 服务器
 
 ```
 user@vmware:~$ sudo apt-get install nfs-kernel-server       # 安装 NFS 服务器端
@@ -173,14 +179,14 @@ user@vmware:~$ sudo chmod -R 777 /home/user/board
 user@vmware:~$ sudo chown –R nobody /home/user/board
 ```
 
-#### 开启 nfs 服务器
+#### 启动 nfs 服务器
 
 ```
 user@vmware:~$ sudo /etc/init.d/nfs-kernel-server start   # 开启 nfs 服务器
 user@vmware:~$ sudo /etc/init.d/nfs-kernel-server restart # 重启 nfs 服务器
 ```
 
-#### 测试 nfs 服务器是否配置成功
+#### 测试 nfs 服务器
 
 开发板接好网线，保证开发板和虚拟机在同一个局域网下，执行以下命令，挂载 /home/user/board 目录到开发板的 /mnt 目录下。
 
@@ -193,7 +199,12 @@ user@vmware:~$ sudo /etc/init.d/nfs-kernel-server restart # 重启 nfs 服务器
 
 ### 3.3 安装 samba 服务器
 
-#### 安装 samba 服务
+#### samba 介绍
+
+Samba是在Linux和UNIX系统上实现SMB协议的一个免费软件，由服务器及客户端程序构成。
+SMB（Server Messages Block，信息服务块）是一种在局域网上共享文件和打印机的一种通信协议，它为局域网内的不同计算机之间提供文件及打印机等资源的共享服务。
+
+#### 安装 samba 服务器
 
 ```
 user@vmware:~$ sudo apt-get install samba
@@ -221,7 +232,7 @@ user@vmware:~$ sudo vim /etc/samba/smb.conf
 user@vmware:~$ sudo smbpasswd -a user
 ```
 
-#### 重启 samba 服务
+#### 重启 samba 服务器
 
 ```
 user@vmware:~$ sudo /etc/init.d/smbd restart
