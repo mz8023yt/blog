@@ -489,8 +489,7 @@ user@vmware:~$ sudo /etc/init.d/nfs-kernel-server restart # 重启 nfs 服务器
 
 ```bash
 [root@FriendlyARM /]# ifconfig eth0 192.168.1.111
-[root@FriendlyARM /]# mount -t nfs 192.168.1.110:/home/user/board /mnt -o no
-lock
+[root@FriendlyARM /]# mount -t nfs 192.168.1.110:/home/user/board /mnt -o nolock
 ```
 
 其中 192.168.1.100 是 Ubuntu 虚拟机 ip 地址，/home/user/board 是虚拟机 nfs 服务器共享的目录。
