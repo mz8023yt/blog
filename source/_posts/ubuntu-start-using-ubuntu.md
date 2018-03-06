@@ -1,7 +1,9 @@
 ---
 title: '[Ubuntu] 开始使用 Ubuntu'
-date: 2018-02-25 23:20:43
+date: 2018-03-06 23:20:43
 tags:
+  - ubuntu
+categories: Ubuntu
 ---
 
 ## 一. 系统配置
