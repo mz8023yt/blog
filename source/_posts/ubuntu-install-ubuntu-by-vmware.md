@@ -119,7 +119,7 @@ VMware 就是我们俗称的虚拟机，通过这个软件我们可以模拟出�
 
 ## 三. 获取 Ubuntu 16.04 LTS
 
-### 3.1 从 Ubuntu 官网获取目前(2017-10-06)最新的 Ubuntu 16.04.3 LTS 版本。
+### 3.1 从官网获取最新的 Ubuntu
 
 百度搜索 ubuntu 关键字，进入 ubuntu 官网。
 
@@ -152,23 +152,23 @@ Ubuntu 为了方便广大中国用户，推出了中文的官方网站。由于�
 
 ### 4.1 使用虚拟机安装 Ubuntu 16.04
 
-运行 VMware 软件，点击编辑虚拟机设置，可以修改虚拟机的硬件配置
+运行 VMware 软件，点击编辑虚拟机设置，可以修改虚拟机的硬件配置。
 
 ![图片1](https://raw.githubusercontent.com/mz8023yt/blog/master/image/ubuntu/ubuntu-install-ubuntu-by-vmware/4-01.png)
 
-在运行虚拟机之前，将下载好的 Ubuntu 镜像加载到光驱中。这样开机便可以从光驱中运行 Ubuntu 安装程序
+在运行虚拟机之前，将下载好的 Ubuntu 镜像加载到光驱中。这样开机便可以从光驱中运行 Ubuntu 安装程序。
 
 ![图片2](https://raw.githubusercontent.com/mz8023yt/blog/master/image/ubuntu/ubuntu-install-ubuntu-by-vmware/4-02.png)
 
-配置好了光驱，开启虚拟机，开始安装 Ubuntu
+配置好了光驱，开启虚拟机，开始安装 Ubuntu。
 
 ![图片3](https://raw.githubusercontent.com/mz8023yt/blog/master/image/ubuntu/ubuntu-install-ubuntu-by-vmware/4-03.png)
 
-开机后出现 Ubuntu logo 界面，说明已经进入了 Ubuntu 安装程序
+开机后出现 Ubuntu logo 界面，说明已经进入了 Ubuntu 安装程序。
 
 ![图片4](https://raw.githubusercontent.com/mz8023yt/blog/master/image/ubuntu/ubuntu-install-ubuntu-by-vmware/4-04.png)
 
-左侧选择好 Ubuntu 的语言，点击右方 Install Ubuntu 按钮开始安装
+左侧选择好 Ubuntu 的语言，点击右方 Install Ubuntu 按钮开始安装。
 
 ![图片5](https://raw.githubusercontent.com/mz8023yt/blog/master/image/ubuntu/ubuntu-install-ubuntu-by-vmware/4-05.png)
 
@@ -176,15 +176,15 @@ Ubuntu 为了方便广大中国用户，推出了中文的官方网站。由于�
 
 ![图片6](https://raw.githubusercontent.com/mz8023yt/blog/master/image/ubuntu/ubuntu-install-ubuntu-by-vmware/4-06.png)
 
-选择磁盘如何处理，可以擦除整个磁盘然后装 Ubuntu，也可以自己自定义分区，在指定的分区中安装 Ubuntu。由于使用虚拟机安装，就不自定义分区了，直接全擦后安装 Ubuntu，这样方便。如果是安装 Windows 和 Ubuntu 双系统的话，建议还是自己自定义分区
+选择磁盘如何处理，可以擦除整个磁盘然后装 Ubuntu，也可以自己自定义分区，在指定的分区中安装 Ubuntu。由于使用虚拟机安装，就不自定义分区了，直接全擦后安装 Ubuntu，这样方便。如果是安装 Windows 和 Ubuntu 双系统的话，建议还是自己自定义分区。
 
 ![图片7](https://raw.githubusercontent.com/mz8023yt/blog/master/image/ubuntu/ubuntu-install-ubuntu-by-vmware/4-07.png)
 
-这是一个二次确认的对话框，确认要全擦？然后哪些分区将被创建会列举出来
+这是一个二次确认的对话框，确认要全擦？然后哪些分区将被创建会列举出来。
 
 ![图片8](https://raw.githubusercontent.com/mz8023yt/blog/master/image/ubuntu/ubuntu-install-ubuntu-by-vmware/4-08.png)
 
-选择位置
+选择位置。
 
 ![图片9](https://raw.githubusercontent.com/mz8023yt/blog/master/image/ubuntu/ubuntu-install-ubuntu-by-vmware/4-09.png)
 
@@ -204,7 +204,7 @@ Ubuntu 为了方便广大中国用户，推出了中文的官方网站。由于�
 
 ![图片13](https://raw.githubusercontent.com/mz8023yt/blog/master/image/ubuntu/ubuntu-install-ubuntu-by-vmware/4-13.png)
 
-进入虚拟机配置界面，将光驱的配置修改回来，不修改回来的无法进入 Ubuntu 系统
+进入虚拟机配置界面，将光驱的配置修改回来，不修改回来的话将无法进入 Ubuntu 系统。
 
 ![图片14](https://raw.githubusercontent.com/mz8023yt/blog/master/image/ubuntu/ubuntu-install-ubuntu-by-vmware/4-14.png)
 
@@ -240,7 +240,7 @@ Ubuntu 中使用 Ctrl + Alt + T 调起终端，依次输入以下命令开始安
 
 ![图片4](https://raw.githubusercontent.com/mz8023yt/blog/master/image/ubuntu/ubuntu-install-ubuntu-by-vmware/5-04.png)
 
-配置虚拟机共享文件夹
+### 5.3 配置虚拟机共享文件夹
 
 在开启虚拟机之前，先按照下图配置虚拟机共享文件夹。通过配置共享文件夹，ubuntu 可以通过访问 /mnt/hgfs/Share 目录访问 windows 下的 E:\Share 目录。其中，/mnt/hgfs/Share 中的最后一级目录 Share 是下图中配置的名称，E:\Share 中的 Share 是下图中配置的主机路径。
 

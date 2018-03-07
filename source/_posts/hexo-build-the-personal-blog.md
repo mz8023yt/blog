@@ -129,14 +129,15 @@ Hexo 是一个快速、简洁且高效的博客框架。Hexo 使用 Markdown（�
 上面这两个工具我们已经安装好了，因此接下来只需要使用 npm 即可完成 Hexo 的安装。
 
 ```
-# user@lenovo:~$ npm install -g hexo-cli # hexo 官网推荐使用这一条命令
-user@lenovo:~$ npm install -g hexo
+user@lenovo:~$ npm install -g hexo-cli
 npm WARN deprecated swig@1.4.2: This package is no longer maintained
 ... ...
 + hexo@3.4.4
 added 253 packages in 24.503s
 ```
-查看一下 hexo 的版本好，确认 hexo 安装成功。
+
+查看一下 hexo 的版本号，确认 hexo 安装成功。
+
 ```
 user@lenovo:~$ hexo -v
 hexo-cli: 1.0.4
@@ -158,6 +159,7 @@ tz: 2017b
 
 #### 2.3.3 获取 hexo 站点源文件
 安装 Hexo 完成后，请执行下列命令，Hexo 将会在指定文件夹中新建所需要的文件。
+
 ```
 user@lenovo:~$ mkdir blog
 user@lenovo:~$ cd blog/
@@ -172,6 +174,7 @@ INFO  Start blogging with Hexo!
 #### 2.3.4 使用 git 管理网站源文件
 这一步不是必须的，但我还是觉得很有必要。  
 为什么我觉得很有必要，比如说换电脑了或者重装系统了，源码还是有备份的。
+
 ```
 user@lenovo:~/blog$ git init
 初始化空的 Git 仓库于 /home/user/blog/.git/

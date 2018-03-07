@@ -11,7 +11,7 @@ categories: Mini2440
 
 ### 1.1 相关资料获取
 
-本博客讲述如何使用韦东山老师开发的 oflash 工具配合 OpenJTAG 下载器下载友善之臂光盘提供的 superboot 到 mini2440 开发板的 nor flash 上。
+本小节主要讲述如何使用韦东山老师开发的 oflash 工具配合 OpenJTAG 下载器下载友善之臂光盘提供的 superboot 到 mini2440 开发板的 nor flash 上。
 
 为什么要下载 superboot 到 nor flash 上？  
 是因为 superboot 可以配合 FriendlyARM 开发的 miniTools 工具快速烧写系统到 mini2440 开发板上。
