@@ -130,11 +130,12 @@ scheme: Gemini
 # Key is the link label showing to end users.
 # Value before `||` delimeter is the target permalink.
 # Value after `||` delimeter is the name of FontAwesome icon. If icon (with or without delimeter) is not specified, globe icon will be loaded.
+# 图标可以在 http://fontawesome.dashgame.com/ 网站上找
 social:
   E-Mail: mailto:mz8023yt@163.com || envelope
   GitHub: https://github.com/mz8023yt || github
-  Geeker: http://www.androidgeeker.com/ || 
-  Jianshu: https://www.jianshu.com/u/30fc01f695b9 ||
+  Jianshu: https://www.jianshu.com/u/30fc01f695b9 || book
+  Geeker: http://www.androidgeeker.com/ || android
   #Google: https://plus.google.com/yourname || google
   #Twitter: https://twitter.com/yourname || twitter
   #FB Page: https://www.facebook.com/yourname || facebook
@@ -152,10 +153,11 @@ social_icons:
 # Blog rolls
 links_icon: link
 links_title: Links
-links_layout: block
+#links_layout: block
 #links_layout: inline
-#links:
-  #Title: http://example.com/
+links:
+  icon: http://fontawesome.dashgame.com/
+  kernel: https://www.kernel.org/
 
 # Sidebar Avatar
 # in theme directory(source/images): /images/avatar.gif
