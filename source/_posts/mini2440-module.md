@@ -1,9 +1,9 @@
 ---
-title: '[Linux] 初识 Linux 内核模块'
+title: '[Mini2440] 初识 Linux 内核模块'
 date: 2018-01-22 22:59:52
 tags:
   - module
-categories: Linux
+categories: Mini2440
 ---
 
 ## 一. 编写一个内核模块
@@ -15,9 +15,9 @@ Linux 内核是模块化组成的，它允许内核在运行时动态地向其�
 创建一个目录专门保存 linux 驱动代码，并开始编写第一个内核模块：
 
 ```bash
-user@ubuntu:~$ mkdir -p mini2440/driver.with.linux
-user@ubuntu:~$ cd mini2440/driver.with.linux/
-user@ubuntu:~/mini2440/driver.with.linux$ mkdir -p module/simplest_module/
+user@ubuntu:~$ mkdir -p workspace/mini2440/driver.with.linux
+user@ubuntu:~$ cd workspace/mini2440/driver.with.linux/
+user@ubuntu:~/workspace/mini2440/driver.with.linux$ mkdir -p module/simplest_module/
 ```
 
 #### 文件一：simplest_module.c
@@ -399,3 +399,4 @@ test module init ok!
 ```
 
 加载依赖的 calculate 模块之后，test_module 正常加载了。
+

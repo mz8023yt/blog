@@ -1,6 +1,6 @@
 ---
 title: '[Mini2440] 搭建 Linux 开发环境'
-date: 2018-01-23 23:08:43
+date: 2018-01-12 23:08:43
 tags:
   - mini2440
   - FrindlyARM

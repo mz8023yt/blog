@@ -1,9 +1,9 @@
 ---
-title: '[Linux] 内核调试手段之 printk'
+title: '[Mini2440] 内核调试手段之 printk'
 date: 2018-01-23 11:51:10
 tags:
   - debug
-categories: Linux
+categories: Mini2440
 ---
 
 ## 一. 内核打印函数 printk 介绍
@@ -279,5 +279,6 @@ clean:
 /home/user/workspace/mini2440/linux_driver/02_printk/02_log/log_module.c:
 [Paul][mod_exit][23] goodbye, everyone 
 ```
+
 
 
