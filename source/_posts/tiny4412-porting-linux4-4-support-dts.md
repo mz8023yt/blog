@@ -313,6 +313,7 @@ TINY4412 #
 ```
 
 在 u-boot 中执行以下命令，可以将 u-boot 从 sd 中拷贝到 emmc 中，以后便可以通过 emmc 启动了。
+但是很遗憾，我试验下来并不行，原因暂时没有找到。
 
 ```bash
 ## 将 u-boot 从 SD 卡复制到 DDR 中
@@ -336,5 +337,23 @@ TINY4412 # emmc close 1
 eMMC CLOSE Success.!!
 ```
 
-
 ## 三. 移植 Kernel
+
+## 四. 构建根文件系统
+
+我已经做好，可以直接访 github 获取。
+
+```
+git clone git@github.com:tiny4412/rootfs.git
+```
+
+如何使用呢？
+
+1. 开发板在 u-boot 中设置 bootargs 启动参数
+
+```
+# nfs 启动方式的 root 属性格式为 nfsroot=<服务器IP地址>:<服务器上的文件目录>  ip=<开发板IP地址>:<服务器IP地址>:<网关>:<子网掩码>::eth0:off
+setenv bootargs 'root=/dev/nfs rw nfsroot=192.168.1.7:/home/user/workspace/tiny4412/rootfs ethmac=1C:6F:65:34:51:7E ip=192.168.1.100:192.168.1.7:192.168.1.1:255.255.255.0::eth0:off console=ttySAC0,115200 init=/linuxrc'
+save
+```
+
