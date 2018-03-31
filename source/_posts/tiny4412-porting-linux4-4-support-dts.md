@@ -339,12 +339,26 @@ eMMC CLOSE Success.!!
 
 ## 三. 移植 Kernel
 
+主要是配置好 dts 移植好 usb 网卡驱动，这些操作我都已经做好了，可以直接访问 github 获取。
+
+```
+user@lenovo:~/workspace/tiny4412$ git clone git@github.com:tiny4412/linux-4.4.x.git
+user@lenovo:~/workspace/tiny4412$ cd linux-4.4.x/
+user@lenovo:~/workspace/tiny4412/linux-4.4.x$ make distclean
+user@lenovo:~/workspace/tiny4412/linux-4.4.x$ make clean
+user@lenovo:~/workspace/tiny4412/linux-4.4.x$ make exynos_defconfig
+user@lenovo:~/workspace/tiny4412/linux-4.4.x$ make -j24 uImage LOADADDR=0x40008000
+user@lenovo:~/workspace/tiny4412/linux-4.4.x$ ./maziot.sh 
+'arch/arm/boot/dts/exynos4412-tiny4412.dtb' -> './exynos4412-tiny4412.dtb'
+'arch/arm/boot/uImage' -> './uImage'
+```
+
 ## 四. 构建根文件系统
 
 我已经做好，可以直接访 github 获取。
 
 ```
-git clone git@github.com:tiny4412/rootfs.git
+user@lenovo:~/workspace/tiny4412$ git clone git@github.com:tiny4412/rootfs.git
 ```
 
 如何使用呢？
@@ -356,4 +370,5 @@ git clone git@github.com:tiny4412/rootfs.git
 setenv bootargs 'root=/dev/nfs rw nfsroot=192.168.1.7:/home/user/workspace/tiny4412/rootfs ethmac=1C:6F:65:34:51:7E ip=192.168.1.100:192.168.1.7:192.168.1.1:255.255.255.0::eth0:off console=ttySAC0,115200 init=/linuxrc'
 save
 ```
+
 
