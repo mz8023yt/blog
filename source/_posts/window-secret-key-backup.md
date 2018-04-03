@@ -64,3 +64,11 @@ slmgr /skms zh.us.to
 slmgr /ato
 ```
 
+### 2.3 Win7 激活秘钥
+
+安装好系统后右击计算机--属性--更改产品密匙 输入以下密匙:
+
+```
+RHTBY-VWY6D-QJRJ9-JGQ3X-Q2289
+```
+
