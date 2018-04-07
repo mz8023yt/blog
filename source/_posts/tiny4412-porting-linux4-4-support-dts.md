@@ -339,15 +339,22 @@ eMMC CLOSE Success.!!
 
 ## 三. 移植 Kernel
 
-主要是配置好 dts 移植好 usb 网卡驱动，这些操作我都已经做好了，可以直接访问 github 获取。
+主要是配置好 dts 移植好 usb 网卡驱动，这些操作我都已经做好了，可以直接访问 github 获取。  
+具体的修改内容可以查看 github 仓库的提交记录。
 
 ```
 user@lenovo:~/workspace/tiny4412$ git clone git@github.com:tiny4412/linux-4.4.x.git
 user@lenovo:~/workspace/tiny4412$ cd linux-4.4.x/
+## 清除内核配置
 user@lenovo:~/workspace/tiny4412/linux-4.4.x$ make distclean
 user@lenovo:~/workspace/tiny4412/linux-4.4.x$ make clean
+## 配置内核
 user@lenovo:~/workspace/tiny4412/linux-4.4.x$ make exynos_defconfig
+## 使配置生效，生成 .config 文件
+user@lenovo:~/workspace/tiny4412/linux-4.4.x$ make menuconfig
+## 开始编译
 user@lenovo:~/workspace/tiny4412/linux-4.4.x$ make -j24 uImage LOADADDR=0x40008000
+## 将内核 uImage 拷贝到根目录下，方便后面使用 dts 下载。
 user@lenovo:~/workspace/tiny4412/linux-4.4.x$ ./maziot.sh 
 'arch/arm/boot/dts/exynos4412-tiny4412.dtb' -> './exynos4412-tiny4412.dtb'
 'arch/arm/boot/uImage' -> './uImage'
@@ -355,7 +362,7 @@ user@lenovo:~/workspace/tiny4412/linux-4.4.x$ ./maziot.sh
 
 ## 四. 构建根文件系统
 
-我已经做好，可以直接访 github 获取。
+已经做好，可以直接访 github 获取。
 
 ```
 user@lenovo:~/workspace/tiny4412$ git clone git@github.com:tiny4412/rootfs.git
