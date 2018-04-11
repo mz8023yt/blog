@@ -10,11 +10,11 @@ categories: ODM
 
 ### 问题描述
 
-安卓手机厂商都喜欢自己克客制化 Android 的 UI 界面，由于客户克制化了 UI 界面后在 setting 中显示手机存储容量的界面上需要读取 /data/data/emmc_total_size 节点获取到 eMMC(Flash) 的大小。因此驱动这边需要实现 /data/data/emmc_total_size 这个节点，将 eMMC 大小传递到上层。
+现时代的安卓手机厂商都喜欢自己克客制化 Android 系统，做一套具有品牌特点的 UI 界面。我们客户也不例外，由于客户克制化了 UI 界面后，在 setting 中显示手机存储容量的界面上，需要读取 /data/data/emmc_total_size 节点获取 eMMC(Flash) 的大小。因此驱动这边需要实现 /data/data/emmc_total_size 这个节点，将 eMMC 大小传递到上层。
 
 ### 功能实现
 
-kernel 中的需要创建 sys 节点，这里修改了 mmc.c 和 card.h 两个文件。
+kernel 中的需要创建 sys 节点，这里修改了 mmc.c 和 card.h 两个文件，具体修改的 diff 如下：
 
 ```
 diff --git a/drivers/mmc/core/mmc.c b/drivers/mmc/core/mmc.c
@@ -102,14 +102,14 @@ index f6cec9c..8dc3599
  };
 ```
 
-sys 节点创建好了，接下来创建到 /data/data/ 的链接文件。  
+sys 节点创建好了，接下来创建到 /data/data/ 目录下的链接文件。  
 创建链接文件需要修改 device 目录下的 init 配置文件。
 
 ```
-diff --git a/A306/init.target.rc b/A306/init.target.rc
+diff --git a/project_name/init.target.rc b/project_name/init.target.rc
 index 45902de..e3a3f08 100755
---- a/A306/init.target.rc
-+++ b/A306/init.target.rc
+--- a/project_name/init.target.rc
++++ b/project_name/init.target.rc
 @@ -87,6 +87,10 @@ on post-fs-data
      mkdir /persist/data/tz 0700 system system
      mkdir /data/vendor/hbtp 0750 system system
