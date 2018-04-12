@@ -431,7 +431,7 @@ timezone:
 #### 3.4.7 加宽博文宽度
 
 对于显示器比较大的电脑，在使用 next 主题的时候，发现两边大量的留白，对于站点整理的美观有所影响。  
-能不能将文章对应的宽度修改的宽一点呢？  
+能不能将文章对应的宽度修改的宽一点呢？
 
 ```bash
  # git diff themes/next/source/css/_schemes/Pisces/_layout.styl
@@ -458,7 +458,7 @@ timezone:
    box-sizing: border-box;
    padding: $content-desktop-padding;
 -  width: $content-desktop;
-+  width: calc(100% - 2能不能将文章对应的宽度修改的宽一点呢？60px);
++  width: calc(100% - 260px);
    background: white;
    min-height: 700px;
    box-shadow: $box-shadow-inner;
@@ -467,6 +467,36 @@ timezone:
    }
  }
 ```
+
+#### 3.4.8 添加字数统计和阅读时长
+
+```
+diff --git a/themes/next/_config.yml b/themes/next/_config.yml
+index 72e87b8..288ee8b 100755
+--- a/themes/next/_config.yml
++++ b/themes/next/_config.yml
+@@ -238,9 +238,9 @@ post_meta:
+ # Dependencies: https://github.com/willin/hexo-wordcount
+ post_wordcount:
+   item_text: true
+-  wordcount: false
+-  min2read: false
+-  totalcount: false
++  wordcount: true
++  min2read: true
++  totalcount: true
+   separated_meta: true
+
+ # Wechat Subscriber
+```
+
+注释上写此功能依赖 https://github.com/willin/hexo-wordcount 插件，看了看 hexo-wordcount 插件的 README 介绍，需要执行以下命令安装 hexo-wordcount 插件。
+
+```
+user@lenovo:~/blog$ npm i --save hexo-wordcount
+```
+
+
 
 ### 3.5 添加页面
 
