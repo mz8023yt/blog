@@ -2,9 +2,9 @@
 title: '[ODM] 高通 LCD 框架分析'
 date: 2018-04-11 17:11:23
 tags:
-  - touch
-  - driver
-  - kernel
+  - lcd
+  - qcom
+categories: ODM
 ---
 
 ## 一. lk 阶段 lcd 框架
@@ -16,11 +16,12 @@ lk 阶段框架不妨从 lk 阶段的 c 代码开始分析，第一个执行的 
 ```
 // file: src/bootable/bootloader/lk/kernel/main.c
 void kmain(void)
-        thread_t *thr;
         // get us into some sort of thread context
         thread_init_early();
+
         // early arch stuff
-        arch_early_init();
+        arch_early_init()；
+
         // do any super early platform initialization
         platform_early_init();
                 board_init();
@@ -28,30 +29,34 @@ void kmain(void)
                 qgic_init();
                 qtimer_init();
                 scm_init();
+
         // do any super early target initialization
         target_early_init();
         bs_set_timestamp(BS_BL_START);
+
         // deal with any static constructors
         call_constructors();
+
         // bring up the kernel heap
         heap_init();
         __stack_chk_guard_setup();
+
         // initialize the threading system
         thread_init();
+
         // initialize the dpc system
         dpc_init();
+
         // initialize kernel timers
         timer_init();
+
         // create a thread to complete system initialization
-        thr = thread_create("bootstrap2", &bootstrap2, NULL, DEFAULT_PRIORITY, 
-        		DEFAULT_STACK_SIZE);
-        if (!thr)
-        {
-                panic("failed to create thread bootstrap2\n");
-        }
+        thr = thread_create("bootstrap2", &bootstrap2, NULL, DEFAULT_PRIORITY, DEFAULT_STACK_SIZE);
         thread_resume(thr);
+
         // enable interrupts
         exit_critical_section();
+
         // become the idle thread
         thread_become_idle();
 
@@ -75,9 +80,11 @@ void kmain(void)
                         apps_init();
 ```
 
+这里可以看出，lk 在做完平台端必要的初始化后，会去启动所谓的 app，那么 app 是什么东西？如何定义？又在哪里被执行？将在下一小节中介绍。
+
 ### 1.2 lk 阶段 app 启动流程
 
-看看 apps_init() 都干了些什么？
+先看看 apps_init() 都干了些什么？
 
 ```
 // file: src/bootable/bootloader/lk/app/app.c
@@ -132,7 +139,7 @@ static void start_app(const struct app_descriptor *app)
 }
 ```
 
-从上面的代码可以看出，每一个 app 都使用 app_descriptor 描述，都具有一个 init 函数，一个 entry 函数和一个 flags 标识。
+从上面的代码可以看出，每一个 app 都使用 app_descriptor 描述，并具有一个 init 函数，一个 entry 函数和一个 flags 标识。
 在 apps_init() 中会去遍历一个 app 的列表，分别调用他们的 init 函数，对 app 进行初始化。初始化结束后，还会根据 flags 标识位决定是否调用 start_app(app) 函数创建一个线程运行 app 的 entry 函数。
   
 那么问题来了，这里的 app 的列表是怎么来的？
@@ -141,10 +148,10 @@ static void start_app(const struct app_descriptor *app)
 
 ```
 [wangbing@ubuntu: lk]$ grep -rsn "__apps_start"
-arch/arm/trustzone-system-onesegment.ld:51:             __apps_start = .;
-arch/arm/system-twosegment.ld:47:                       __apps_start = .;
-arch/arm/trustzone-test-system-onesegment.ld:52:        __apps_start = .;
-arch/arm/system-onesegment.ld:47:                       __apps_start = .;
+arch/arm/trustzone-system-onesegment.ld:51:      __apps_start = .;
+arch/arm/system-twosegment.ld:47:                __apps_start = .;
+arch/arm/trustzone-test-system-onesegment.ld:52: __apps_start = .;
+arch/arm/system-onesegment.ld:47:                __apps_start = .;
 ```
 
 打开链接脚本看看，可以发现四个脚本描述 \__apps_start 和 \__apps_end 都一样，都是表示 .apps 端的起始结束地址。
@@ -198,20 +205,19 @@ struct app_descriptor {
 #endif
 ```
 
-在 app.h 有两个创建 app 的宏，分别是 APP_START 和 APP_END。搜索一下，看看别人是怎么用他们创建 app 的。
+在 app.h 的最后几行提供了两个用于创建 app 的宏，分别是 APP_START 和 APP_END。搜索一下，看看别人是怎么用他们创建 app 的。
 
 ```
 ---- APP_START Matches (7 in 7 files) ----
-aboot.c (bootloader\lk\app\aboot) line 5400 : APP_START(aboot)
-app.h (bootloader\lk\include) line 45 : #define APP_START(appname) struct app_descriptor _app_##appname __SECTION(".apps") = { .name = #appname,
-clock_tests.c (bootloader\lk\app\clocktests) line 119 : APP_START(clocktests)
-pci_tests.c (bootloader\lk\app\pcitests) line 247 : APP_START(pcitests)
-shell.c (bootloader\lk\app\shell) line 37 : APP_START(shell)
+aboot.c (bootloader\lk\app\aboot) line 5400 :             APP_START(aboot)
+clock_tests.c (bootloader\lk\app\clocktests) line 119 :   APP_START(clocktests)
+pci_tests.c (bootloader\lk\app\pcitests) line 247 :       APP_START(pcitests)
+shell.c (bootloader\lk\app\shell) line 37 :               APP_START(shell)
 string_tests.c (bootloader\lk\app\stringtests) line 283 : APP_START(stringtests)
-tests.c (bootloader\lk\app\tests) line 42 : APP_START(tests)
+tests.c (bootloader\lk\app\tests) line 42 :               APP_START(tests)
 ```
 
-就以第一个 aboot.c 为例吧，看看是怎么创建的。
+就以第一个 aboot.c 为例吧，看看它是怎么创建的。
 
 ```
 // file: bootable/bootloader/lk/app/aboot/aboot.c
@@ -220,7 +226,7 @@ APP_START(aboot)
 APP_END
 ```
 
-将宏定义展开，没错，就是这里指定该代码存放在 .apps 段。
+将宏定义展开，没错，就是这里指定该结构存放在 .apps 段。
 
 ```
 struct app_descriptor _app_aboot __SECTION(".apps") = { .name = aboot,

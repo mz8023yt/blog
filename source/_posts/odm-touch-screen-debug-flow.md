@@ -3,8 +3,7 @@ title: '[ODM] TP 相关 debug 流程'
 date: 2018-04-11 14:00:43
 tags:
   - touch
-  - driver
-  - kernel
+  - qcom
 categories: ODM
 ---
 
