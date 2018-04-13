@@ -207,7 +207,7 @@ struct app_descriptor {
 
 在 app.h 的最后几行提供了两个用于创建 app 的宏，分别是 APP_START 和 APP_END。搜索一下，看看别人是怎么用他们创建 app 的。
 
-```
+```bash
 ---- APP_START Matches (7 in 7 files) ----
 aboot.c (bootloader\lk\app\aboot) line 5400 :             APP_START(aboot)
 clock_tests.c (bootloader\lk\app\clocktests) line 119 :   APP_START(clocktests)
@@ -221,6 +221,7 @@ tests.c (bootloader\lk\app\tests) line 42 :               APP_START(tests)
 
 ```c
 // file: bootable/bootloader/lk/app/aboot/aboot.c
+
 APP_START(aboot)
 	.init = aboot_init,
 APP_END
@@ -228,7 +229,7 @@ APP_END
 
 将宏定义展开，没错，就是这里指定该结构存放在 .apps 段。
 
-```
+```c
 struct app_descriptor _app_aboot __SECTION(".apps") = { .name = aboot,
         .init = aboot_init,
 };
@@ -248,7 +249,7 @@ struct app_descriptor _app_aboot __SECTION(".apps") = { .name = aboot,
 1. 在哪里读取手机上实际接的 lcd 的 id？
 2. 在哪里遍历所有的 lcd 驱动，并和实际读取的 id 做比对？
 
-接下就分析代码中，lk 阶段最后是启动各个 app，简单看了各个 app 的流程，最后发现 lk 的探测兼容部分是在 aboot 中实现的。
+接下就是分析代码了，上一小节分析到 lk 阶段最后是启动各个 app，简单看了各个 app 的流程，最后发现 lk 的探测兼容部分是在 aboot 中实现的。
 
 ```c
 // file: bootable/bootloader/lk/app/aboot/aboot.c
@@ -273,12 +274,13 @@ void aboot_init(const struct app_descriptor *app)
                 |       |       |               |
                 |       |       |               |   // (3) 根据解析出来 panel 编号，绑定对应的 lcd 驱动函数
                 |       |       |               |-- switch (panel_id) {
-                |       |       |               |       case ST7703_HSD_VDIO:
+                |       |       |               |       case ST7703_HSD_PANEL:
                 |       |       |               |               ... ...
-                |       |       |               |       case ST7703_BOE_VDIO:
+                |       |       |               |       case ST7703_BOE_PANEL:
                 |       |       |               |               ... ...
-                |       |       |               |       case HX83102B_HSD_VIDEO:
+                |       |       |               |       case HX83102B_HSD_PANEL:
                 |       |       |               |               ... ...
+                |       |       |               |               panelstruct->paneldata = &HX83102_B_720p_hsd_video_panel_data;
                 |       |       |               |               pinfo->mipi.panel_compare_id_read_cmds = HX83102_B_720p_video_compare_id_page_command;
                 |       |       |               |               pinfo->mipi.panel_compare_id_page_cmds = HX83102_B_720p_video_compare_id_read_command;
                 |       |       |               |               pinfo->mipi.compare_id = HX83102_B_720P_VIDEO_COMPARE_ID;
@@ -291,19 +293,20 @@ void aboot_init(const struct app_descriptor *app)
                 |       |               |-- msm_display_config();
                 |       |                       |-- mdss_dsi_config(panel);
                 |       |                               |-- mdss_dsi_panel_initialize(mipi, mipi->broadcast);
-                |       |                                       |
-                |       |                                       |   // (4) 使用绑定的 lcd 驱动函数读取手机实际接的 lcd 的 id
-                |       |                                       |-- chip_id = oem_panel_compare_chip_id(mipi);
-                |       |                                       |       |-- mdss_dsi_cmds_tx(mipi, mipi->panel_compare_id_page_cmds, 1, 0);
-                |       |                                       |       |-- mdss_dsi_cmds_tx(mipi, mipi->panel_compare_id_read_cmds, 1, 0);
-                |       |                                       |       |-- mdss_dsi_cmds_rx(mipi, &lp, 1, 1);
-                |       |                                       |       |-- return (ntohl(*lp) >> 16) & 0xFF;
-                |       |                                       |
-                |       |                                       |   // (5) 将读取到的 id 和当前的驱动对应的 id 做比对，匹配返回 0，不匹配返回 1
-                |       |                                       |-- if(chip == mipi->compare_id)
-                |       |                                       |       return 0;
-                |       |                                       |-- else
-                |       |                                               return 1;
+                |       |                                       |-- mdss_dsi_read_panel_signature(mipi);
+                |       |                                               |
+                |       |                                               |   // (4) 使用绑定的 lcd 驱动函数读取手机实际接的 lcd 的 id
+                |       |                                               |-- chip_id = oem_panel_compare_chip_id(mipi);
+                |       |                                               |       |-- mdss_dsi_cmds_tx(mipi, mipi->panel_compare_id_page_cmds, 1, 0);
+                |       |                                               |       |-- mdss_dsi_cmds_tx(mipi, mipi->panel_compare_id_read_cmds, 1, 0);
+                |       |                                               |       |-- mdss_dsi_cmds_rx(mipi, &lp, 1, 1);
+                |       |                                               |       |-- return (ntohl(*lp) >> 16) & 0xFF;
+                |       |                                               |
+                |       |                                               |   // (5) 将读取到的 id 和当前的驱动对应的 id 做比对，匹配返回 0，不匹配返回 1
+                |       |                                               |-- if(chip == mipi->compare_id)
+                |       |                                               |       return 0;
+                |       |                                               |-- else
+                |       |                                                       return 1;
                 |       |
                 |       |   // (1) 如果 id 匹配成功(ret = 0)或者所有屏驱动都遍历了，但没有一块屏匹配，则跳出循环，不再遍历
                 |       |-- if (!ret || ret == ERR_NOT_SUPPORTED) {
@@ -313,7 +316,7 @@ void aboot_init(const struct app_descriptor *app)
                 |-- } while (++panel_loop <= oem_panel_max_auto_detect_panels());
 ```
 
-上面贴出来的框图仅仅将 lcd 兼容代码调用贴出来，一些地方描述不是很详细，下面介绍一下上图中做有标号的地方。
+上面贴出来的框图仅仅是将 lcd 兼容函数调用关系贴出来了，一些地方描述不是很详细，下面介绍一下上图中做有标号的地方。
 
 标号1. 依次遍历代码中的兼容的 lcd 驱动做初始化操作。
 
@@ -322,11 +325,11 @@ void aboot_init(const struct app_descriptor *app)
 
 // 这里记录了目前代码中兼容的 lcd 的 panel name，看数组的第二维大小，得出每个 panel name 占用 64 字节的大小
 static char panel_name_my[5][64] = {
-        {"st7703_720p_video"},
-        {"st7703_boe55_720p_video"},
-        {"ili9881p_720p_panda5_video"},
-        {"ili9881c_hsd_720p_video"},
-        {"hx83102b_hsd_video"}
+        {"st7703_hsd_55_720p_video"},
+        {"st7703_boe_55_720p_video"},
+        {"hx83102b_hsd_55_720p_video"},
+        {"ili9881p_panda_55_720p_video"},
+        {"ili9881c_hsd_55_720p_video"},
 };
 
 void target_display_init(const char *panel_name) {
@@ -371,6 +374,133 @@ uint32_t oem_panel_max_auto_detect_panels()
 ```
 
 标号2. 根据 panel_name 解析 supp_panels 数组，得到 panel 的编号。
+
+```c
+// file: src/bootable/bootloader/lk/dev/gcdb/display/panel_display.h
+
+struct panel_list {
+        char name[MAX_PANEL_ID_LEN];
+        uint32_t id;
+};
+
+
+// file: src/bootable/bootloader/lk/target/msm8952/oem_panel.c
+
+enum {
+        ST7703_HSD_PANEL,
+        ST7703_BOE_PANEL,
+        HX83102B_HSD_PANEL,
+        ILI9881P_PANDA_PANEL,
+        ILI9881C_HSD_PANEL,
+        UNKNOWN_PANEL
+};
+
+/*
+ * The list of panels that are supported on this target.
+ * Any panel in this list can be selected using fastboot oem command.
+ */
+static struct panel_list supp_panels[] = {
+        {"st7703_hsd_55_720p_video",     ST7703_HSD_PANEL},
+        {"st7703_boe_55_720p_video",     ST7703_BOE_PANEL},
+        {"hx83102b_hsd_55_720p_video",   HX83102B_HSD_PANEL},
+        {"ili9881p_panda_55_720p_video", ILI9881P_PANDA_PANEL},
+        {"ili9881c_hsd_55_720p_video",   ILI9881C_HSD_PANEL},
+};
+
+
+// file: src/bootable/bootloader/lk/dev/gcdb/display/panel_display.c
+
+int32_t panel_name_to_id(struct panel_list supp_panels[], uint32_t supp_panels_size, const char *panel_name)
+{
+        uint32_t i;
+        int32_t panel_id = ERR_NOT_FOUND;
+        
+        if (!panel_name) {
+                dprintf(CRITICAL, "Invalid panel name\n");
+                return panel_id;
+        }
+
+        // 根据 panel_name 解析 supp_panels 数组，得到 panel 的编号
+        for (i = 0; i < supp_panels_size; i++) {
+                if (!strncmp(panel_name, supp_panels[i].name, MAX_PANEL_ID_LEN)) {
+                        panel_id = supp_panels[i].id;
+                        break;
+                }
+        }
+
+        return panel_id;
+}
+```
+
+标号3. 根据解析出来 panel 编号，绑定对应的 lcd 驱动函数
+
+```c
+// file: src/bootable/bootloader/lk/target/msm8952/oem_panel.c
+
+// 需要包含屏供应商提供头文件
+#include "include/panel_st7703_co55swr8_video.h"
+#include "include/panel_st7703_boe55_video.h"
+#include "include/dsi_hsd_HX83102_B_720p_video.h"
+#include "include/panel_ili9881p_panda5_video.h"
+#include "include/dsi_panel_ili9881c_hsd_huashi_video.h"
+
+static int init_panel_data(struct panel_struct *panelstruct, struct msm_panel_info *pinfo, struct mdss_dsi_phy_ctrl *phy_db)
+{
+        int pan_type = PANEL_TYPE_DSI;
+        struct oem_panel_data *oem_data = mdss_dsi_get_oem_data_ptr();
+
+        switch (panel_id)
+        {
+        case ST7703_HSD_PANEL:
+                ... ...
+        case ST7703_BOE_PANEL:
+                ... ...
+        // 等号右边的变量都来自 dsi_hsd_HX83102_B_720p_video.h 头文件中
+        case HX83102B_HSD_PANEL:
+                panelstruct->paneldata = &HX83102_B_720p_hsd_video_panel_data;
+                panelstruct->paneldata->panel_with_enable_gpio = 1;
+                panelstruct->panelres = &HX83102_B_720p_hsd_video_panel_res;
+                panelstruct->color = &HX83102_B_720p_hsd_video_color;
+                panelstruct->videopanel = &HX83102_B_720p_hsd_video_video_panel;
+                panelstruct->commandpanel = &HX83102_B_720p_hsd_video_command_panel;
+                panelstruct->state = &HX83102_B_720p_hsd_video_state;
+                panelstruct->laneconfig = &HX83102_B_720p_hsd_video_lane_config;
+
+                // 读取屏 chip id 的 mipi cmd
+                pinfo->mipi.panel_compare_id_read_cmds = HX83102_B_720p_video_compare_id_page_command;
+                pinfo->mipi.panel_compare_id_page_cmds = HX83102_B_720p_video_compare_id_read_command;
+
+                // 屏驱动文件中记录的屏 chip id
+                pinfo->mipi.compare_id = HX83102_B_720P_VIDEO_COMPARE_ID;
+
+                panelstruct->paneltiminginfo = &HX83102_B_720p_hsd_video_timing_info;
+                panelstruct->panelresetseq = &HX83102_B_720p_hsd_video_reset_seq;
+                panelstruct->backlightinfo = &HX83102_B_720p_hsd_video_backlight;
+                pinfo->mipi.panel_on_cmds = HX83102_B_720p_hsd_video_on_command;
+                pinfo->mipi.num_of_panel_on_cmds = HX83102_B_720P_HSD_VIDEO_ON_COMMAND;
+                pinfo->mipi.panel_off_cmds = HX83102_B_720p_hsd_video_off_command;
+                pinfo->mipi.num_of_panel_off_cmds = HX83102_B_720P_HSD_VIDEO_OFF_COMMAND;
+                memcpy(phy_db->timing, HX83102_B_720p_hsd_video_timings, TIMING_SIZE);
+                pinfo->mipi.signature = HX83102_B_720P_HSD_VIDEO_SIGNATURE;
+                break;
+                ... ...
+        case UNKNOWN_PANEL:
+        default:
+                memset(panelstruct, 0, sizeof(struct panel_struct));
+                memset(pinfo->mipi.panel_on_cmds, 0, sizeof(struct mipi_dsi_cmd));
+                pinfo->mipi.num_of_panel_on_cmds = 0;
+                memset(pinfo->mipi.panel_off_cmds, 0, sizeof(struct mipi_dsi_cmd));
+                pinfo->mipi.num_of_panel_off_cmds = 0;
+                memset(phy_db->timing, 0, TIMING_SIZE);
+                pan_type = PANEL_TYPE_UNKNOWN;
+                break;
+	}
+
+        return pan_type;
+}
+```
+
+标号4和标号5的位置比较简单，不涉及其他没有贴出来的变量或函数，就不再去详细介绍。
 
 ### 1.4 lk 阶段 lcd 移植流程
 
