@@ -263,10 +263,12 @@ void aboot_init(const struct app_descriptor *app)
                 |       |   // (1) 依次遍历代码中的兼容的 lcd 驱动做初始化操作
                 |       |-- memcpy(oem.panel, (panel_name_my + panel_loop), 64);
                 |       |-- gcdb_display_init(oem.panel, MDP_REV_50, (void *)MIPI_FB_ADDR);
+                |       |       |-- panel_name = oem.panel;
                 |       |       |-- oem_panel_select(panel_name, &panelstruct, &(panel.panel_info), &dsi_video_mode_phy_db);
                 |       |       |       |
                 |       |       |       |   // (2) 根据 panel_name 解析 supp_panels 数组，得到 panel 的编号
-                |       |       |       |-- panel_id = panel_name_to_id(supp_panels, ARRAY_SIZE(supp_panels), panel_name);
+                |       |       |       |-- panel_override_id = panel_name_to_id(supp_panels, ARRAY_SIZE(supp_panels), panel_name);
+                |       |       |       |-- panel_id = panel_override_id;
                 |       |       |       |-- init_panel_data(panelstruct, pinfo, phy_db);
                 |       |       |               |
                 |       |       |               |   // (3) 根据解析出来 panel 编号，绑定对应的 lcd 驱动函数
@@ -303,12 +305,72 @@ void aboot_init(const struct app_descriptor *app)
                 |       |                                       |-- else
                 |       |                                               return 1;
                 |       |
-                |       |   // (1) 如果 id 匹配成功(ret = 0)或者所有屏驱动都遍历了，但没有一块屏匹配
+                |       |   // (1) 如果 id 匹配成功(ret = 0)或者所有屏驱动都遍历了，但没有一块屏匹配，则跳出循环，不再遍历
                 |       |-- if (!ret || ret == ERR_NOT_SUPPORTED) {
 		}               break;
                 |
+                |   // (1) 如果没有走到上面 break 的位置，则接着遍历下一个兼容的 lcd 驱动
                 |-- } while (++panel_loop <= oem_panel_max_auto_detect_panels());
 ```
+
+上面贴出来的框图仅仅将 lcd 兼容代码调用贴出来，一些地方描述不是很详细，下面介绍一下上图中做有标号的地方。
+
+标号1. 依次遍历代码中的兼容的 lcd 驱动做初始化操作。
+
+```c
+// file: src/bootable/bootloader/lk/target/msm8952/target_display.c
+
+// 这里记录了目前代码中兼容的 lcd 的 panel name，看数组的第二维大小，得出每个 panel name 占用 64 字节的大小
+static char panel_name_my[5][64] = {
+        {"st7703_720p_video"},
+        {"st7703_boe55_720p_video"},
+        {"ili9881p_720p_panda5_video"},
+        {"ili9881c_hsd_720p_video"},
+        {"hx83102b_hsd_video"}
+};
+
+void target_display_init(const char *panel_name) {
+        ... ...
+        do {
+                target_force_cont_splash_disable(false);
+
+                // 每个 panel name 占用 64 字节的大小，这里依次取出数组中的 panel name 
+                memcpy(oem.panel, (panel_name_my + panel_loop), 64);
+
+                // 将当前取出的 panel name 记录在 oem.panel 中，传递下去
+                ret = gcdb_display_init(oem.panel, MDP_REV_50, (void *)MIPI_FB_ADDR);
+
+                // 如果 id 匹配成功(ret = 0)或者所有屏驱动都遍历了，但没有一块屏匹配，则跳出循环，不再遍历
+                if (!ret || ret == ERR_NOT_SUPPORTED) {
+                        break;
+                } else {
+                        target_force_cont_splash_disable(true);
+                        msm_display_off();
+                }
+
+        // 如果没有走到上面 break 的位置，则接着遍历下一个兼容的 lcd 驱动
+        // 循环的次数为代码中兼容的屏的个数
+	} while (++panel_loop <= oem_panel_max_auto_detect_panels());
+	... ...
+}
+
+
+// file: src/bootable/bootloader/lk/target/msm8952/oem_panel.c
+
+// 代码中兼容的屏的个数
+#define DISPLAY_MAX_PANEL_DETECTION 5
+
+uint32_t oem_panel_max_auto_detect_panels()
+{
+        // 原本是这段代码，需要根据 target_panel_auto_detect_enabled 函数判断当前处理器平台是否开启了兼容功能
+        // return target_panel_auto_detect_enabled() ? DISPLAY_MAX_PANEL_DETECTION : 0;
+
+        // 现在是直接修改为使能兼容状态，返回兼容的屏的个数
+        return DISPLAY_MAX_PANEL_DETECTION;
+}
+```
+
+标号2. 根据 panel_name 解析 supp_panels 数组，得到 panel 的编号。
 
 ### 1.4 lk 阶段 lcd 移植流程
 
