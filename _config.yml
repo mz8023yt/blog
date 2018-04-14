@@ -80,3 +80,9 @@ deploy:
   type: git
   repo: git@github.com:mz8023yt/mz8023yt.github.io.git
   branch: master
+
+# server port
+server:
+  port: 5000
+  compress: true
+  header: true
