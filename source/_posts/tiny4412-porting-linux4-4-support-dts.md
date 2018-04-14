@@ -41,7 +41,7 @@ user@lenovo:~/workspace/tiny4412/source.code/uboot/friendlyarm$ tar -zxvf uboot_
 
 ### 2.2 修改源码以支持 dts 方式启动
 
-前面已经提到，友善之臂光盘中提供的 u-boot 不支持引导 uImage 格式的 kernrl，也不支持 device tree。针对这两个问题，对 u-boot 要做以下修改：
+前面已经提到，友善之臂光盘中提供的 u-boot 不支持引导 uImage 格式的 kernel，也不支持 device tree。针对这两个问题，对 u-boot 要做以下修改：
 
 开启了 MMU 的话，u-boot 访问的都是虚拟地址，因为后期要使用 dnw 工具烧写文件到开发板 RAM 中，需要指定烧写到 RAM 中的具体物理地址，因此需要关闭 MMU。
 
@@ -342,7 +342,7 @@ eMMC CLOSE Success.!!
 主要是配置好 dts 移植好 usb 网卡驱动，这些操作我都已经做好了，可以直接访问 github 获取。  
 具体的修改内容可以查看 github 仓库的提交记录。
 
-```
+```bash
 user@lenovo:~/workspace/tiny4412$ git clone git@github.com:tiny4412/linux-4.4.x.git
 user@lenovo:~/workspace/tiny4412$ cd linux-4.4.x/
 ## 清除内核配置
@@ -364,7 +364,7 @@ user@lenovo:~/workspace/tiny4412/linux-4.4.x$ ./maziot.sh
 
 已经做好，可以直接访 github 获取。
 
-```
+```bash
 user@lenovo:~/workspace/tiny4412$ git clone git@github.com:tiny4412/rootfs.git
 ```
 
@@ -372,7 +372,7 @@ user@lenovo:~/workspace/tiny4412$ git clone git@github.com:tiny4412/rootfs.git
 
 1. 开发板在 u-boot 中设置 bootargs 启动参数
 
-```
+```bash
 # nfs 启动方式的 root 属性格式为 nfsroot=<服务器IP地址>:<服务器上的文件目录>  ip=<开发板IP地址>:<服务器IP地址>:<网关>:<子网掩码>::eth0:off
 setenv bootargs 'root=/dev/nfs rw nfsroot=192.168.1.7:/home/user/workspace/tiny4412/rootfs ethmac=1C:6F:65:34:51:7E ip=192.168.1.100:192.168.1.7:192.168.1.1:255.255.255.0::eth0:off console=ttySAC0,115200 init=/linuxrc'
 save

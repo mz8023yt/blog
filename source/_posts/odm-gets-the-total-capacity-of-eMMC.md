@@ -16,7 +16,7 @@ categories: ODM
 
 kernel 中的需要创建 sys 节点，这里修改了 mmc.c 和 card.h 两个文件，具体修改的 diff 如下：
 
-```
+```c
 diff --git a/drivers/mmc/core/mmc.c b/drivers/mmc/core/mmc.c
 index dc2e206..b9d567a 100755
 --- a/drivers/mmc/core/mmc.c
@@ -105,7 +105,7 @@ index f6cec9c..8dc3599
 sys 节点创建好了，接下来创建到 /data/data/ 目录下的链接文件。  
 创建链接文件需要修改 device 目录下的 init 配置文件。
 
-```
+```bash
 diff --git a/project_name/init.target.rc b/project_name/init.target.rc
 index 45902de..e3a3f08 100755
 --- a/project_name/init.target.rc
@@ -128,7 +128,7 @@ index 45902de..e3a3f08 100755
 找到一台 16+2 的手机，先看看 sys 下的节点功能是否生效。  
 找不到节点的话，可以先 find 下节点名，找到节点路径。
 
-```
+```bash
 C:\Users\wangbing>adb shell
 android:/ # cd sys
 android:/sys # find -name "emmc_total_size"
@@ -139,14 +139,14 @@ android:/sys # cat devices/soc/7824900.sdhci/mmc_host/mmc0/mmc0:0001/emmc_total_
 
 找到路径后下次直接 cat 就可以了。
 
-```
+```bash
 C:\Users\wangbing\Desktop\unlock>adb shell cat /sys/devices/soc/7824900.sdhci/mmc_host/mmc0/mmc0:0001/emmc_total_size
 16
 ```
 
 sys 节点已经生效了，再看看到 /data/data 的链接文件有没有功能。
 
-```
+```bash
 C:\Users\wangbing\Desktop\unlock>adb shell cat /data/data/emmc_total_size
 16
 
@@ -166,7 +166,7 @@ EMMC 中的 ROM 由扇区(sector)组成，扇区有 512Byte 和 4KB 两种大小
 
 相关代码如下:
 
-```
+```c
 #define EXT_CSD_DATA_SECTOR_SIZE        61      /* R */
 #define EXT_CSD_SEC_CNT                 212     /* RO，4 bytes */
 
