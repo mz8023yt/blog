@@ -22,7 +22,7 @@ categories: Hexo
 百度搜索 nodejs 或者直接点击访问 <https://nodejs.org/zh-cn/> nodejs 官网。  
 下载最新版本的版本的 nodejs，由于我使用的是 Ubuntu 平台，下载后在 ~/download 目录下有对应的 linux 版本 nodejs 压缩包。
 
-```
+```bash
 user@lenovo:~/download$ ls
 node-v8.9.4-linux-x64.tar.xz
 ```
@@ -31,7 +31,7 @@ node-v8.9.4-linux-x64.tar.xz
 
 这里我是直接在 ~/ 目录下创建了一个 ~/opt/ 目录，用来安装 nodejs 软件。
 
-```
+```bash
 user@lenovo:~$ mkdir opt
 user@lenovo:~$ tar Jxf download/node-v8.9.4-linux-x64.tar.xz -C opt/
 ```
@@ -45,7 +45,7 @@ user@lenovo:~$ tar Jxf download/node-v8.9.4-linux-x64.tar.xz -C opt/
 可是这样实在是太麻烦了，linux 博大精深，不可能没有应对机制，shell 有一个机制，在 shell 中解析命令的时候，会先在当前目录下找命令的可执行文件，如果当前目录下找不到的话，则会根据 PATH 这个环境指定的目录灾区找可执行文件。  
 这就豁然开朗了，也就明nodejs白了为什么我们要配置环境变量了，为的是不管在哪一个目录下都可以直接使用 node 命令，而不需要指定 node 全路径。
 
-```
+```bash
 user@lenovo:~$ echo "export PATH=$PATH:/home/user/opt/node-v8.9.4-linux-x64/bin" >> .bashrc
 user@lenovo:~$ . .bashrc
 ```
@@ -55,7 +55,7 @@ user@lenovo:~$ . .bashrc
 在任意目录下，执行任意一条 node 命令即可验证配置是否生效。  
 就用最简单的 node 查看版本号的命令吧。
 
-```
+```bash
 user@lenovo:~$ node -v
 v8.9.4
 ```
@@ -73,7 +73,7 @@ git 是一个版本控制工具，github 是一个代码托管平台。
 
 直接使用 Ubuntu 的软件包管理器安装即可。
 
-```
+```bash
 user@lenovo:~$ sudo apt-get install git
 ```
 
@@ -84,7 +84,7 @@ apt-get 是高级包装工具(Advanced Packaging Tools)是 Debian 及其衍生�
 
 因为 git 是分布式版本控制系统，所以，每个机器都必须自报家门：你的名字和 Email 地址。
 
-```
+```bash
 user@lenovo:~$ git config --global user.name mz8023yt
 user@lenovo:~$ git config --global user.email mz8023yt@163.com
 ```
@@ -92,7 +92,7 @@ user@lenovo:~$ git config --global user.email mz8023yt@163.com
 有没有经常敲错命令？比如 git status？哎 status 这个单词真心不好记。  
 如果敲 git st 就表示 git status 那就简单多了，当然这种偷懒的办法我们是极力赞成的。我们只需要敲一行命令，告诉 git，以后 st 就表示 status：
 
-```
+```bash
 user@lenovo:~$ git config --global alias.st status
 user@lenovo:~$ git config --global alias.lg "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
 ```
@@ -101,7 +101,7 @@ user@lenovo:~$ git config --global alias.lg "log --color --graph --pretty=format
 
 git 和 github 之间是通过 ssh 加密协议通信的，因此需要创建一对 ssh 秘钥对。
 
-```
+```bash
 user@lenovo:~$ ssh-keygen -t rsa -C mz8023yt@163.com
 ```
 
@@ -128,7 +128,7 @@ Hexo 是一个快速、简洁且高效的博客框架。Hexo 使用 Markdown（�
 
 上面这两个工具我们已经安装好了，因此接下来只需要使用 npm 即可完成 Hexo 的安装。
 
-```
+```bash
 user@lenovo:~$ npm install -g hexo-cli
 npm WARN deprecated swig@1.4.2: This package is no longer maintained
 ... ...
@@ -138,7 +138,7 @@ added 253 packages in 24.503s
 
 查看一下 hexo 的版本号，确认 hexo 安装成功。
 
-```
+```bash
 user@lenovo:~$ hexo -v
 hexo-cli: 1.0.4
 os: Linux 4.10.0-28-generic linux x64
@@ -160,7 +160,7 @@ tz: 2017b
 #### 2.3.3 获取 hexo 站点源文件
 安装 Hexo 完成后，请执行下列命令，Hexo 将会在指定文件夹中新建所需要的文件。
 
-```
+```bash
 user@lenovo:~$ mkdir blog
 user@lenovo:~$ cd blog/
 user@lenovo:~/blog$ hexo init
@@ -175,7 +175,7 @@ INFO  Start blogging with Hexo!
 这一步不是必须的，但我还是觉得很有必要。  
 为什么我觉得很有必要，比如说换电脑了或者重装系统了，源码还是有备份的。
 
-```
+```bash
 user@lenovo:~/blog$ git init
 初始化空的 Git 仓库于 /home/user/blog/.git/
 user@lenovo:~/blog$ git remote add mz8023yt git@github.com:mz8023yt/blog.git
@@ -185,7 +185,7 @@ user@lenovo:~/blog$ git commit -m "feature: start the blog with hexo"
 
 #### 2.3.5 修改配置文件
 
-```
+```bash
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
@@ -203,7 +203,7 @@ deploy:
  - hexo g: hexo generate 重新生成博客静态页面
  - hexo d: hexo deploy 部署到 github.io 仓库
 
-```
+```bash
 user@lenovo:~/blog$ hexo c && hexo g && hexo d
 ... ...
 INFO  28 files generated in 620 ms
@@ -212,7 +212,7 @@ ERROR Deployer not found: git
 
 报错了，不慌，百度说这样可以解决，试试。
 
-```
+```bash
 user@lenovo:~/blog$ npm install --save hexo-deployer-git
 npm WARN optional SKIPPING OPTIONAL DEPENDENCY: fsevents@1.1.3 (node_modules/fsevents):
 npm WARN notsup SKIPPING OPTIONAL DEPENDENCY: Unsupported platform for fsevents@1.1.3: wanted {"os":"darwin","arch":"any"} (current: {"os":"linux","arch":"x64"})
@@ -303,6 +303,20 @@ hexo 默认的主题不是很好看，在 hexo 文档中心中有对应的文档
 +author: Paul Wang
 language: zh-Hans
 timezone:
+```
+
+#### 3.3.3 修改 hexo 的默认端口号为 5000
+
+hexo server 启动 hexo 本地服务的时候，默认使用的是 localhost:4000 端口，如果你的电脑同时安装的福昕pdf阅读器，那么很遗憾，端口冲突了。
+这个时候通常的做法是通过 hexo server -p 5000 重新指定一个端口号(这里我指定的是 5000)启动 hexo 服务。但是每次预览博客的时候都要手动指定端口号实在是不方便，通过修改站点配置文件可以修改 hexo 服务默认使用的端口号。
+追加下面这段便可以设置默认的端口号为 5000。
+
+```bash
+# server port
+server:
+  port: 5000
+  compress: true
+  header: true
 ```
 
 ### 3.4 配置 next 主题
@@ -470,7 +484,7 @@ timezone:
 
 #### 3.4.8 添加字数统计和阅读时长
 
-```
+```bash
 diff --git a/themes/next/_config.yml b/themes/next/_config.yml
 index 72e87b8..288ee8b 100755
 --- a/themes/next/_config.yml
@@ -492,11 +506,9 @@ index 72e87b8..288ee8b 100755
 
 注释上写此功能依赖 https://github.com/willin/hexo-wordcount 插件，看了看 hexo-wordcount 插件的 README 介绍，需要执行以下命令安装 hexo-wordcount 插件。
 
-```
+```bash
 user@lenovo:~/blog$ npm i --save hexo-wordcount
 ```
-
-
 
 ### 3.5 添加页面
 
@@ -609,7 +621,7 @@ INFO  Created: ~/blog/source/categories/index.md
 
 先不管那么多，执行 npm 命令安装 hexo 看看。
 
-```
+```bash
 $ npm install -g hexo-cli
 C:\Users\mz802\AppData\Roaming\npm\hexo -> C:\Users\mz802\AppData\Roaming\npm\node_modules\hexo-cli\bin\hexo
 npm WARN optional SKIPPING OPTIONAL DEPENDENCY: fsevents@1.1.3 (node_modules\hexo-cli\node_modules\fsevents):
@@ -621,7 +633,7 @@ added 217 packages in 18.824s
 
 安装好了，看看版本信息确认一下，看看是不是 ok 了。
 
-```
+```bash
 $ hexo -v
 ERROR Local hexo not found in E:\blog
 ERROR Try running: 'npm install hexo --save'
@@ -629,7 +641,7 @@ ERROR Try running: 'npm install hexo --save'
 
 有问题？不过没有关系，提示不说叫我们试试 npm install hexo --save 命令吗，那不妨试一下。
 
-```
+```bash
 $ npm install hexo --save
 
 > nunjucks@3.1.2 postinstall E:\blog\node_modules\hexo\node_modules\nunjucks
@@ -644,7 +656,7 @@ added 470 packages in 17.778s
 
 成功了，再看看版本信息。
 
-```
+```bash
 $ hexo -v
 hexo: 3.5.0
 hexo-cli: 1.0.4
@@ -673,7 +685,7 @@ tz: 2017b
 hexo 安装成功，并且正确运行，但是执行 hexo s 的时候，出现 localhost:4000 不能访问。  
 百度查了下是因为 hexo 默认使用 4000 端口，但是如果安装了福昕阅读器，则 4000 端口已经被福昕阅读器使用了，导致 hexo 没有办法使用 4000 端口。解决方法是换个端口，使用 -p 选项可以指定端口号。
 
-```
+```bash
 hexo s -p 5000
 ```
 
