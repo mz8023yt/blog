@@ -242,7 +242,7 @@ struct app_descriptor _app_aboot __SECTION(".apps") = { .name = aboot,
 
 ### 1.3 lk 阶段 lcd 兼容流程
 
-#### lcd id 寄存器介绍
+#### 兼容原理概述
 
 先介绍下 lcd 的 id 寄存器：MIPI 组织规定各屏厂生产的 lcd ic 的 id 信息必须记录在 A1 寄存器(RDDDB: Read DDB start)中，A1 寄存器中除了第一个字节的供应商 id 是由 MIPI 组织分配的，其他字节供应商可以自定义，可以记录 ic id、ic version code 什么的。这个随便找一块 lcd 的 datasheet 看一下就明白了。
 再简单介绍下 lcd 的兼容原理：原理其实很简单，其实就是代码中已经包含有多块 lcd 驱动程序，在开机过程中，会去读出实际接在手机上的 lcd 模组的 id，将读出的 id 和各个屏驱动中的 id 做对比，如果某一个 lcd 驱动的 id 和读出的 id 一样，则驱动匹配成功，就使用这个匹配上的驱动程序操作 lcd。
@@ -322,7 +322,7 @@ void aboot_init(const struct app_descriptor *app)
 
 上面贴出来的框图仅仅是将 lcd 兼容函数调用关系贴出来了，一些地方描述不是很详细，下面介绍一下上图中做有标号的地方。
 
-#### 标号1. 依次遍历代码中的兼容的 lcd 驱动做初始化操作。
+#### 标号1. 依次遍历代码中的兼容的 lcd 驱动做初始化操作
 
 ```c
 // file: src/bootable/bootloader/lk/target/msm8952/target_display.c
@@ -377,7 +377,7 @@ uint32_t oem_panel_max_auto_detect_panels()
 }
 ```
 
-#### 标号2. 根据 panel_name 解析 supp_panels 数组，得到 panel 的编号。
+#### 标号2. 根据 panel_name 解析 supp_panels 数组，得到 panel 的编号
 
 ```c
 // file: src/bootable/bootloader/lk/dev/gcdb/display/panel_display.h
@@ -444,7 +444,7 @@ int32_t panel_name_to_id(struct panel_list supp_panels[], uint32_t supp_panels_s
 // 需要包含屏供应商提供头文件
 #include "include/panel_st7703_co55swr8_video.h"
 #include "include/panel_st7703_boe55_video.h"
-#include "include/dsi_hsd_HX83102_B_720p_video.h"
+#include "include/panel_hx83102b_hsd_video.h"
 #include "include/panel_ili9881p_panda5_video.h"
 #include "include/dsi_panel_ili9881c_hsd_huashi_video.h"
 
@@ -459,7 +459,7 @@ static int init_panel_data(struct panel_struct *panelstruct, struct msm_panel_in
                 ... ...
         case ST7703_BOE_PANEL:
                 ... ...
-        // 等号右边的变量都来自 dsi_hsd_HX83102_B_720p_video.h 头文件中
+        // 等号右边的变量都来自 panel_hx83102b_hsd_video.h 头文件中
         case HX83102B_HSD_PANEL:
                 panelstruct->paneldata = &HX83102_B_720p_hsd_video_panel_data;
                 panelstruct->paneldata->panel_with_enable_gpio = 1;
@@ -512,76 +512,114 @@ static int init_panel_data(struct panel_struct *panelstruct, struct msm_panel_in
 
 经过上面兼容框架的分析，现在接着思考下在 lk 阶段 porting 一块新的 lcd 需要修改哪些地方。
 
-#### 修改点1. src/bootable/bootloader/lk/dev/gcdb/display/include/
+#### 修改点1. 屏参数头文件
 
-将屏供应商提供的屏参数头文件，如 dsi_hsd_HX83102_B_720p_video.h 文件添加到 src/bootable/bootloader/lk/dev/gcdb/display/include/ 目录下。
+将屏供应商提供的屏参数头文件，如 panel_hx83102b_hsd_video.h 文件添加到 src/bootable/bootloader/lk/dev/gcdb/display/include/ 目录下。
+这个屏参数头文件中，包含有屏的启动参数，屏的配置信息等，在 init_panel_data() 函数中会将使用到这些信息。
 
-#### 修改点2. src/bootable/bootloader/lk/target/msm8952/oem_panel.c
+#### 修改点2. target_display.c
 
+这里需要在 panel_name_my 中追加新添加的 panel name，这样在遍历 lcd 驱动的时候才会取出新添加的屏驱动做探测的动作。
+
+```c
+diff --git a/bootable/bootloader/lk/target/msm8952/target_display.c b/bootable/bootloader/lk/target/msm8952/target_display.c
+index a4548d7..16bd60b 100644
+--- a/bootable/bootloader/lk/target/msm8952/target_display.c
++++ b/bootable/bootloader/lk/target/msm8952/target_display.c
+@@ -59,6 +59,7 @@
+ #define TRULY_CMD_PANEL_STRING "1:dsi:0:qcom,mdss_dsi_truly_720p_cmd:1:none:cfg:single_dsi"
+
+ static char panel_name_my[5][64] = {
++       {"hx83102b_hsd_55_720p_video"},
+        {"st7703_hsd_55_720p_video"},
+        {"st7703_boe_55_720p_video"},
+        {"ili9881p_panda_55_720p_video"},
+        {"ili9881c_hsd_55_720p_video"},
+ };
 ```
-  #include "include/panel_st7703_co55swr8_video.h"
-  #include "include/panel_st7703_boe55_video.h"
-+ #include "include/dsi_hsd_HX83102_B_720p_video.h"
-  #include "include/panel_ili9881p_panda5_video.h"
-  #include "include/dsi_panel_ili9881c_hsd_huashi_video.h"
-  
-  enum {
-          ST7703_HSD_PANEL,
-          ST7703_BOE_PANEL,
-+         HX83102B_HSD_PANEL,
-          ILI9881P_PANDA_PANEL,
-          ILI9881C_HSD_PANEL,
-          UNKNOWN_PANEL
-  };
-  
-  static struct panel_list supp_panels[] = {
-          {"st7703_hsd_55_720p_video",     ST7703_HSD_PANEL},
-          {"st7703_boe_55_720p_video",     ST7703_BOE_PANEL},
-+         {"hx83102b_hsd_55_720p_video",   HX83102B_HSD_PANEL},
-          {"ili9881p_panda_55_720p_video", ILI9881P_PANDA_PANEL},
-          {"ili9881c_hsd_55_720p_video",   ILI9881C_HSD_PANEL},
-  };
 
-switch (panel_id)
+#### 修改点3. oem_panel.c
+
+这里文件修改点比较多，有 5 修改点，分别是：
+1. 包含屏参数头文件。
+2. 在枚举中追加新兼容的屏的 panel id。
+3. 将新兼容屏的 panel name 和 panel id 匹配上，并追加到 supp_panels 数组中。
+4. 在 switch (panel_id) 位置绑定屏相关参数。
+5. 修改目前兼容的 lcd 的数量。
+
+```c
+diff --git a/bootable/bootloader/lk/target/msm8952_A306/oem_panel.c b/bootable/bootloader/lk/target/msm8952_A306/oem_panel.c
+index d838a8b..742053b 100644
+--- a/bootable/bootloader/lk/target/msm8952_A306/oem_panel.c
++++ b/bootable/bootloader/lk/target/msm8952_A306/oem_panel.c
+@@ -66,6 +66,7 @@
+ #include "include/panel_st7703_co55swr8_video.h"
+ #include "include/panel_st7703_boe55_video.h"
+ #include "include/panel_ili9881p_panda5_video.h"
++#include "include/panel_hx83102b_hsd_video.h"
+
+ /*---------------------------------------------------------------------------*/
+ /* static panel selection variable                                           */
+@@ -74,6 +75,7 @@
+ #define ID1_PIN 61
+
+ enum {
++       HX83102B_HSD_PANEL,
+        ST7703_HSD_PANEL,
+        ST7703_BOE_PANEL,
+        ILI9881P_PANDA_PANEL,
+@@ -108,6 +110,7 @@ uint32_t panel_regulator_settings[] = {
+  * Any panel in this list can be selected using fastboot oem command.
+  */
+ static struct panel_list supp_panels[] = {
++       {"hx83102b_hsd_55_720p_video",   HX83102B_HSD_PANEL},
+        {"st7703_hsd_55_720p_video",     ST7703_HSD_PANEL},
+        {"st7703_boe_55_720p_video",     ST7703_BOE_PANEL},
+        {"ili9881p_panda_55_720p_video", ILI9881P_PANDA_PANEL},
+
+@@ -191,6 +194,28 @@ static int init_panel_data(struct panel_struct *panelstruct,
+
+        switch (panel_id)
         {
-+         case HX83102B_HSD_PANEL:
-+                 panelstruct->paneldata = &HX83102_B_720p_hsd_video_panel_data;
-+                 panelstruct->paneldata->panel_with_enable_gpio = 1;
-+                 panelstruct->panelres = &HX83102_B_720p_hsd_video_panel_res;
-+                 panelstruct->color = &HX83102_B_720p_hsd_video_color;
-+                 panelstruct->videopanel = &HX83102_B_720p_hsd_video_video_panel;
-+                 panelstruct->commandpanel = &HX83102_B_720p_hsd_video_command_panel;
-+                 panelstruct->state = &HX83102_B_720p_hsd_video_state;
-+                 panelstruct->laneconfig = &HX83102_B_720p_hsd_video_lane_config;
-+ 
-+                 // 读取屏 chip id 的 mipi cmd
-+                 pinfo->mipi.panel_compare_id_read_cmds = HX83102_B_720p_video_compare_id_page_command;
-+                 pinfo->mipi.panel_compare_id_page_cmds = HX83102_B_720p_video_compare_id_read_command;
-+ 
-+                 // 屏驱动文件中记录的屏 chip id
-+                 pinfo->mipi.compare_id = HX83102_B_720P_VIDEO_COMPARE_ID;
-+ 
-+                 panelstruct->paneltiminginfo = &HX83102_B_720p_hsd_video_timing_info;
-+                 panelstruct->panelresetseq = &HX83102_B_720p_hsd_video_reset_seq;
-+                 panelstruct->backlightinfo = &HX83102_B_720p_hsd_video_backlight;
-+                 pinfo->mipi.panel_on_cmds = HX83102_B_720p_hsd_video_on_command;
-+                 pinfo->mipi.num_of_panel_on_cmds = HX83102_B_720P_HSD_VIDEO_ON_COMMAND;
-+                 pinfo->mipi.panel_off_cmds = HX83102_B_720p_hsd_video_off_command;
-+                 pinfo->mipi.num_of_panel_off_cmds = HX83102_B_720P_HSD_VIDEO_OFF_COMMAND;
-+                 memcpy(phy_db->timing, HX83102_B_720p_hsd_video_timings, TIMING_SIZE);
-+                 pinfo->mipi.signature = HX83102_B_720P_HSD_VIDEO_SIGNATURE;
-+                 break;
++       case HX83102B_HSD_PANEL:
++               panelstruct->paneldata = &HX83102_B_720p_hsd_video_panel_data;
++               panelstruct->paneldata->panel_with_enable_gpio = 1;
++               panelstruct->panelres = &HX83102_B_720p_hsd_video_panel_res;
++               panelstruct->color = &HX83102_B_720p_hsd_video_color;
++               panelstruct->videopanel = &HX83102_B_720p_hsd_video_video_panel;
++               panelstruct->commandpanel = &HX83102_B_720p_hsd_video_command_panel;
++               panelstruct->state = &HX83102_B_720p_hsd_video_state;
++               panelstruct->laneconfig = &HX83102_B_720p_hsd_video_lane_config;
++               pinfo->mipi.panel_compare_id_read_cmds = HX83102_B_720p_video_compare_id_page_command;
++               pinfo->mipi.panel_compare_id_page_cmds = HX83102_B_720p_video_compare_id_read_command;
++               pinfo->mipi.compare_id = HX83102_B_720P_VIDEO_COMPARE_ID;
++               panelstruct->paneltiminginfo = &HX83102_B_720p_hsd_video_timing_info;
++               panelstruct->panelresetseq = &HX83102_B_720p_hsd_video_reset_seq;
++               panelstruct->backlightinfo = &HX83102_B_720p_hsd_video_backlight;
++               pinfo->mipi.panel_on_cmds = HX83102_B_720p_hsd_video_on_command;
++               pinfo->mipi.num_of_panel_on_cmds = HX83102_B_720P_HSD_VIDEO_ON_COMMAND;
++               pinfo->mipi.panel_off_cmds = HX83102_B_720p_hsd_video_off_command;
++               pinfo->mipi.num_of_panel_off_cmds = HX83102_B_720P_HSD_VIDEO_OFF_COMMAND;
++               memcpy(phy_db->timing, HX83102_B_720p_hsd_video_timings, TIMING_SIZE);
++               pinfo->mipi.signature = HX83102_B_720P_HSD_VIDEO_SIGNATURE;
++               break;
+        case ST7703_BOE_PANEL:
+                panelstruct->paneldata = &st7703_boe55_720p_video_panel_data;
+                panelstruct->paneldata->panel_with_enable_gpio = 1;
+@@ -895,7 +920,7 @@ uint32_t oem_panel_compare_chip_id(struct mipi_panel_info *mipi)
+        return data;
+ }
+
+-#define DISPLAY_MAX_PANEL_DETECTION 4
++#define DISPLAY_MAX_PANEL_DETECTION 5
+ static uint32_t auto_pan_loop = 0;
+
+ uint32_t oem_panel_max_auto_detect_panels()
 ```
-
-修改点1. 
-
-修改点1. 
-
-修改点1. 
-
-修改点1. 
 
 ### 1.5 lk 阶段 lcd 框架分析
 
 对于 i2c、spi、usb 总线下的设备，写驱动程序的时候，涉及到两部分，分别是总线驱动和设备驱动。以 i2c 为例，总线驱动和设备驱动各自有对应的分工，总线驱动负责控制 i2c 控制器(片上外设)，将 i2c 控制器寄存器相关的控制逻辑封装成符合 i2c 规范的 start、stop、ask、sendbyte、readbyte 等接口函数。至于设备驱动，只需要根据设备的 datasheet 并按照总线的规范调用总线提供的接口函数，就可以实现和设备的通信。
 和我们熟悉的 i2c、spi、usb 一样，mipi dsi 协议也是一样的，也分为总线驱动和设备驱动。我们分析框架，对于总线驱动部分只需要找到对应的接口函数即可，暂不去深入分析 mipi 总线驱动，重点看看点亮一块屏，设备驱动端上电时序，如下 init code，以及让 lcd 显示一帧图片需要如何操作。
+
+未完待续。
