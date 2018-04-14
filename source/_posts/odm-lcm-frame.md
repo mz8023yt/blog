@@ -313,8 +313,8 @@ void aboot_init(const struct app_descriptor *app)
                 |       |                                                       return 1;
                 |       |
                 |       |   // (1) 如果 id 匹配成功(ret = 0)或者所有屏驱动都遍历了，但没有一块屏匹配，则跳出循环，不再遍历
-                |       |-- if (!ret || ret == ERR_NOT_SUPPORTED) {
-		}               break;
+                |       |-- if (!ret || ret == ERR_NOT_SUPPORTED)
+		|               break;
                 |
                 |   // (1) 如果没有走到上面 break 的位置，则接着遍历下一个兼容的 lcd 驱动
                 |-- } while (++panel_loop <= oem_panel_max_auto_detect_panels());
@@ -624,56 +624,100 @@ index d838a8b..742053b 100644
 
 未完待续。
 
+
 ## 二. kernel 阶段 lcd 框架
 
 ### 2.1 kernel 阶段 lcd 兼容原理
 
+#### 兼容原理概述
+
+kernel 阶段的兼容相比 lk 阶段要简单的多，由于在 lk 阶段已经做过了遍历所有屏驱动探测 lcd 的动作，再加上 bootloader 可以通过 cmdline 传参机制传递信息到 kernel 中。这样的话，完全可以通过 cmdline 将 lk 阶段的探测到的屏名称直接传递到 kernel，kernel 拿到传递过来的 panel name 再去加载对应的屏驱动。
+
+#### 兼容框架分析
+
+lk 阶段通过将屏信息写入 cmdline
+
+```c
+char display_panel_buf[MAX_PANEL_BUF_SIZE];
+
+void aboot_init(const struct app_descriptor *app)
+        memset(display_panel_buf, '\0', MAX_PANEL_BUF_SIZE);
+        boot_linux_from_mmc();
+                boot_linux(hdr->kernel_addr, hdr->tags_addr, hdr->cmdline, board_machtype(), hdr->ramdisk_addr, hdr->ramdisk_size);
+                        final_cmdline = update_cmdline((const char*)cmdline);
+			        target_display_panel_node(display_panel_buf, MAX_PANEL_BUF_SIZE);
+			                gcdb_display_cmdline_arg(pbuf, buf_size);
+			                        panel_node = panelstruct.paneldata->panel_node_id;
+			                                panel_node = panelstruct.paneldata->panel_node_id;
+                                                        strlcpy(pbuf, panel_node, buf_size);
+                                                        pbuf += panel_node_len;
+                                dst = cmdline_final;
+                                src = display_panel_buf;
+                                if (have_cmdline)
+                                        --dst;
+                                while ((*dst++ = *src++));
+                                return cmdline_final;
+                        update_device_tree((void *)tags,(const char *)final_cmdline, ramdisk, ramdisk_size);
+                                fdt_appendprop_string(fdt, offset, (const char*)"bootargs", (const void*)cmdline);
+                                        ... ... 待补充
+```
+
+kernel 阶段解析 cmdline 获取到 lk 传递过来的屏信息
+
+```c
+
+```
+
 ### 2.2 kernel 阶段 lcd 移植流程
 
-主要参考汪俊的笔记, 重新整理了下:
+#### 修改点1. 添加屏相关的 dtsi 文件
 
-Kernel 中 Porting LCM 的相关代码修改点:
-
-1. 添加屏相关的 dtsi 文件.
 咨询 FAE 要到 LCM 相关的 panel dtsi 文件. 添加到 src/kernel/msm-3.18/arch/arm/boot/dts/qcom/ 目录下:
+eg: src/kernel/msm-3.18/arch/arm/boot/dts/qcom/dsi-panel-st7703_boe55-video.dtsi
+此 dtsi 仅仅是在 mdss_mdp 节点下追加了一个子节点。
 
-eg: 
-src/kernel/msm-3.18/arch/arm/boot/dts/qcom/dsi-panel-st7703_boe55-video.dtsi
-
-此 dtsi 仅仅是在 mdss_mdp 节点下追加了一个子节点
+```c
 &mdss_mdp {
         dsi_boe55_st7703_720p_video: qcom,dsi_boe55_st7703_720p_video {
                 qcom,mdss-dsi-panel-name = "dsi_boe55_st7703_720p_video";
                 ... ...
         };
 };
+```
 
 问1: msm8937 是 64 位的处理器, 为什么是在 arch/arm/ 下添加文件, 而不是在 arch/arm64 目录下添加?
-答1: 其实是一样的, 
+答1: 其实 arch/arm64 是通过软链接方式链接到 arch/arm 目录下，因此不管在哪个目录修改都是可以生效的。
+
+```bash
 [wangbing@ubuntu: ~/src/kernel/msm-3.18/arch/arm64/boot/dts]$ ls -l
 lrwxrwxrwx 1 wangbing wangbing   26 Apr  3 23:07 qcom -> ../../../arm/boot/dts/qcom
+```
 
-2. 包含 dtsi 到内核中
-修改点1: 在 src/kernel/msm-3.18/arch/arm/boot/dts/qcom/msm8937-mdss-panels.dtsi 包含第一点中添加的 dtsi 文件.
-目的是为了让追加的 panel 的 dtsi 在编译 dtb 的时候能够被编译到.
+#### 修改点2. 包含屏参数 dtsi 文件到 dts 中
 
+在 src/kernel/msm-3.18/arch/arm/boot/dts/qcom/msm8937-mdss-panels.dtsi 包含上一个修改点中添加的 dtsi 文件。目的是为了让追加的 panel 的 dtsi 在编译 dtb 的时候能够被编译到。
+
+```c
 #include "dsi-panel-st7703_boe55-video.dtsi"
+```
 
-问1: dtb 编译的时候是如何确定哪些文件会被编译呢?
-答1: 在 src/kernel/msm-3.18/arch/arm/boot/dts/qcom/ 目录下也是有 Makefile 的.
-     编译的时候会编译 Makefile 中指定的 dtb 文件, 而这些 dtb 文件对应的源文件(dts文件)会依赖于相关的 dtsi 文件.
-     编译的时候就会将 dts 以及依赖的 dtsi 一起编译(类似于c文件依赖h文件一样).
+问1: dtb 编译的时候是如何确定哪些文件(哪些 dts 和 dtsi 文件)会被编译呢?
+答1: 编译 dtb 文件也是根据 Makefile 规则编译的，在 src/kernel/msm-3.18/arch/arm/boot/dts/qcom/ 目录的 Makefile 决定哪些 dts 文件会编译成 dtb。编译的时候会编译 Makefile 中指定的 dtb 文件, 而这些 dtb 文件对应的源文件(dts文件)会依赖于相关的 dtsi 文件。编译的时候就会将 dts 以及依赖的 dtsi 一起编译(类似于c文件依赖h文件一样)。
 
 问2: dsi-panel-st7703_boe55-video.dtsi 文件的依赖关系是?
 答2: 一直根据 grep 搜索对应关键字, 就可以找到依赖关系:
-     msm8937-mdss-panels.dtsi:34:    #include "dsi-panel-st7703_boe55-video.dtsi"
-     msm8937-mtp.dtsi:320:           #include "msm8937-mdss-panels.dtsi"
-     msm8937-pmi8937-mtp.dtsi:15:    #include "msm8937-mtp.dtsi"
-     msm8937-pmi8937-mtp.dts:17:     #include "msm8937-pmi8937-mtp.dtsi"
-     Makefile:196:                   msm8937-pmi8937-mtp.dtb \
 
-3. 
+```bash
+msm8937-mdss-panels.dtsi:34:    #include "dsi-panel-st7703_boe55-video.dtsi"
+msm8937-mtp.dtsi:320:           #include "msm8937-mdss-panels.dtsi"
+msm8937-pmi8937-mtp.dtsi:15:    #include "msm8937-mtp.dtsi"
+msm8937-pmi8937-mtp.dts:17:     #include "msm8937-pmi8937-mtp.dtsi"
+Makefile:196:                   msm8937-pmi8937-mtp.dtb \
+```
 
+#### 修改点3. xxx
+
+```c
 msm8937-mtp.dtsi (kernel\msm-3.18\arch\arm64\boot\dts\qcom)
         &dsi_hsd_ili9881_720p_video {
                 qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
@@ -684,5 +728,4 @@ msm8937-mtp.dtsi (kernel\msm-3.18\arch\arm64\boot\dts\qcom)
                 qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
                 qcom,mdss-dsi-pan-fps-update = "dfps_immediate_porch_mode_vfp";
         };
-
-### 2.2 kernel 阶段 lcd 驱动框架
+```
