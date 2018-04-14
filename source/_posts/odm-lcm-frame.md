@@ -240,7 +240,7 @@ struct app_descriptor _app_aboot __SECTION(".apps") = { .name = aboot,
 在 lk 启动流程中，最后会遍历 .apps 段中所有的 app，分别执行其中的 init 和 entry 函数。  
 这里就清楚了, app 对应的 app_descriptor 结构必须放在 apps 段中才可以被启动。
 
-### 1.3 lk 阶段 lcd 兼容流程
+### 1.3 lk 阶段 lcd 兼容原理
 
 #### 兼容原理概述
 
@@ -623,3 +623,66 @@ index d838a8b..742053b 100644
 和我们熟悉的 i2c、spi、usb 一样，mipi dsi 协议也是一样的，也分为总线驱动和设备驱动。我们分析框架，对于总线驱动部分只需要找到对应的接口函数即可，暂不去深入分析 mipi 总线驱动，重点看看点亮一块屏，设备驱动端上电时序，如下 init code，以及让 lcd 显示一帧图片需要如何操作。
 
 未完待续。
+
+## 二. kernel 阶段 lcd 框架
+
+### 2.1 kernel 阶段 lcd 兼容原理
+
+### 2.2 kernel 阶段 lcd 移植流程
+
+主要参考汪俊的笔记, 重新整理了下:
+
+Kernel 中 Porting LCM 的相关代码修改点:
+
+1. 添加屏相关的 dtsi 文件.
+咨询 FAE 要到 LCM 相关的 panel dtsi 文件. 添加到 src/kernel/msm-3.18/arch/arm/boot/dts/qcom/ 目录下:
+
+eg: 
+src/kernel/msm-3.18/arch/arm/boot/dts/qcom/dsi-panel-st7703_boe55-video.dtsi
+
+此 dtsi 仅仅是在 mdss_mdp 节点下追加了一个子节点
+&mdss_mdp {
+        dsi_boe55_st7703_720p_video: qcom,dsi_boe55_st7703_720p_video {
+                qcom,mdss-dsi-panel-name = "dsi_boe55_st7703_720p_video";
+                ... ...
+        };
+};
+
+问1: msm8937 是 64 位的处理器, 为什么是在 arch/arm/ 下添加文件, 而不是在 arch/arm64 目录下添加?
+答1: 其实是一样的, 
+[wangbing@ubuntu: ~/src/kernel/msm-3.18/arch/arm64/boot/dts]$ ls -l
+lrwxrwxrwx 1 wangbing wangbing   26 Apr  3 23:07 qcom -> ../../../arm/boot/dts/qcom
+
+2. 包含 dtsi 到内核中
+修改点1: 在 src/kernel/msm-3.18/arch/arm/boot/dts/qcom/msm8937-mdss-panels.dtsi 包含第一点中添加的 dtsi 文件.
+目的是为了让追加的 panel 的 dtsi 在编译 dtb 的时候能够被编译到.
+
+#include "dsi-panel-st7703_boe55-video.dtsi"
+
+问1: dtb 编译的时候是如何确定哪些文件会被编译呢?
+答1: 在 src/kernel/msm-3.18/arch/arm/boot/dts/qcom/ 目录下也是有 Makefile 的.
+     编译的时候会编译 Makefile 中指定的 dtb 文件, 而这些 dtb 文件对应的源文件(dts文件)会依赖于相关的 dtsi 文件.
+     编译的时候就会将 dts 以及依赖的 dtsi 一起编译(类似于c文件依赖h文件一样).
+
+问2: dsi-panel-st7703_boe55-video.dtsi 文件的依赖关系是?
+答2: 一直根据 grep 搜索对应关键字, 就可以找到依赖关系:
+     msm8937-mdss-panels.dtsi:34:    #include "dsi-panel-st7703_boe55-video.dtsi"
+     msm8937-mtp.dtsi:320:           #include "msm8937-mdss-panels.dtsi"
+     msm8937-pmi8937-mtp.dtsi:15:    #include "msm8937-mtp.dtsi"
+     msm8937-pmi8937-mtp.dts:17:     #include "msm8937-pmi8937-mtp.dtsi"
+     Makefile:196:                   msm8937-pmi8937-mtp.dtb \
+
+3. 
+
+msm8937-mtp.dtsi (kernel\msm-3.18\arch\arm64\boot\dts\qcom)
+        &dsi_hsd_ili9881_720p_video {
+                qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+                //qcom,mdss-dsi-pan-enable-dynamic-fps;                                 // 高通目前是定帧率的
+                qcom,mdss-dsi-pan-fps-update = "dfps_immediate_porch_mode_vfp";
+        };
+        &dsi_jdf_lianovation_st7703_720p_video {
+                qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+                qcom,mdss-dsi-pan-fps-update = "dfps_immediate_porch_mode_vfp";
+        };
+
+### 2.2 kernel 阶段 lcd 驱动框架
