@@ -548,10 +548,10 @@ index a4548d7..16bd60b 100644
 5. 修改目前兼容的 lcd 的数量。
 
 ```c
-diff --git a/bootable/bootloader/lk/target/msm8952_A306/oem_panel.c b/bootable/bootloader/lk/target/msm8952_A306/oem_panel.c
+diff --git a/bootable/bootloader/lk/target/msm8952/oem_panel.c b/bootable/bootloader/lk/target/msm8952/oem_panel.c
 index d838a8b..742053b 100644
---- a/bootable/bootloader/lk/target/msm8952_A306/oem_panel.c
-+++ b/bootable/bootloader/lk/target/msm8952_A306/oem_panel.c
+--- a/bootable/bootloader/lk/target/msm8952/oem_panel.c
++++ b/bootable/bootloader/lk/target/msm8952/oem_panel.c
 @@ -66,6 +66,7 @@
  #include "include/panel_st7703_co55swr8_video.h"
  #include "include/panel_st7703_boe55_video.h"
@@ -641,32 +641,32 @@ lk 阶段通过将屏信息写入 cmdline
 char display_panel_buf[MAX_PANEL_BUF_SIZE];
 
 void aboot_init(const struct app_descriptor *app)
-        memset(display_panel_buf, '\0', MAX_PANEL_BUF_SIZE);
-        boot_linux_from_mmc();
-                boot_linux(hdr->kernel_addr, hdr->tags_addr, hdr->cmdline, board_machtype(), hdr->ramdisk_addr, hdr->ramdisk_size);
-                        final_cmdline = update_cmdline((const char*)cmdline);
-			        target_display_panel_node(display_panel_buf, MAX_PANEL_BUF_SIZE);
-			                gcdb_display_cmdline_arg(pbuf, buf_size);
-			                        panel_node = panelstruct.paneldata->panel_node_id;
-			                                panel_node = panelstruct.paneldata->panel_node_id;
-                                                        strlcpy(pbuf, panel_node, buf_size);
-                                                        pbuf += panel_node_len;
-                                dst = cmdline_final;
-                                src = display_panel_buf;
-                                if (have_cmdline)
-                                        --dst;
-                                while ((*dst++ = *src++));
-                                return cmdline_final;
-                        update_device_tree((void *)tags,(const char *)final_cmdline, ramdisk, ramdisk_size);
-                                fdt_appendprop_string(fdt, offset, (const char*)"bootargs", (const void*)cmdline);
-                                        ... ... 待补充
+        |-- memset(display_panel_buf, '\0', MAX_PANEL_BUF_SIZE);
+        |-- boot_linux_from_mmc();
+                |-- boot_linux(hdr->kernel_addr, hdr->tags_addr, hdr->cmdline, board_machtype(), hdr->ramdisk_addr, hdr->ramdisk_size);
+                        |-- cmdline = hdr->cmdline;
+                        |-- final_cmdline = update_cmdline(cmdline);
+                        |       |-- target_display_panel_node(display_panel_buf, MAX_PANEL_BUF_SIZE);
+			|       |       |-- pbuf = display_panel_buf
+			|       |       |-- gcdb_display_cmdline_arg(pbuf, buf_size);
+			|       |               |
+			|       |               |   // 屏供应商提供的头文件中的 panel config 信息保存到
+			|       |               |-- panel_node = panelstruct.paneldata->panel_node_id;
+                        |       |               |-- strlcpy(pbuf, panel_node, buf_size);
+                        |       |
+                        |       |-- dst = cmdline_final;
+                        |       |-- src = display_panel_buf;
+                        |       |-- if (have_cmdline)
+                        |       |        --dst;
+                        |       |-- while ((*dst++ = *src++));
+                        |       |--return cmdline_final;
+                        |
+                        |-- update_device_tree((void *)tags, (const char *)final_cmdline, ramdisk, ramdisk_size);
+                                |-- fdt_appendprop_string(fdt, offset, (const char*)"bootargs", (const void*)cmdline);
+                                ... ... 待补充
 ```
 
-kernel 阶段解析 cmdline 获取到 lk 传递过来的屏信息
-
-```c
-
-```
+kernel 阶段解析 cmdline 获取到 lk 传递过来的屏信息。
 
 ### 2.2 kernel 阶段 lcd 移植流程
 
