@@ -220,7 +220,7 @@ tests.c (bootloader\lk\app\tests) line 42 :               APP_START(tests)
 就以第一个 aboot.c 为例吧，看看它是怎么创建的。
 
 ```c
-// file: bootable/bootloader/lk/app/aboot/aboot.c
+// file: src/bootable/bootloader/lk/app/aboot/aboot.c
 
 APP_START(aboot)
 	.init = aboot_init,
@@ -256,7 +256,8 @@ struct app_descriptor _app_aboot __SECTION(".apps") = { .name = aboot,
 接下就是分析代码了，上一小节分析到 lk 阶段最后是启动各个 app，简单看了各个 app 的流程，最后发现 lk 的探测兼容部分是在 aboot 中实现的。
 
 ```c
-// file: bootable/bootloader/lk/app/aboot/aboot.c
+// file: src/bootable/bootloader/lk/app/aboot/aboot.c
+
 APP_START(aboot)
 	.init = aboot_init,
 APP_END
@@ -635,9 +636,11 @@ kernel 阶段的兼容相比 lk 阶段要简单的多，由于在 lk 阶段已�
 
 #### 兼容框架分析
 
-lk 阶段通过将屏信息写入 cmdline
+lk 阶段将屏信息写入 cmdline。
 
 ```c
+// file: src/bootable/bootloader/lk/app/aboot/aboot.c
+
 char display_panel_buf[MAX_PANEL_BUF_SIZE];
 
 void aboot_init(const struct app_descriptor *app)
@@ -647,17 +650,22 @@ void aboot_init(const struct app_descriptor *app)
                         |-- cmdline = hdr->cmdline;
                         |-- final_cmdline = update_cmdline(cmdline);
                         |       |-- target_display_panel_node(display_panel_buf, MAX_PANEL_BUF_SIZE);
-			|       |       |-- pbuf = display_panel_buf
-			|       |       |-- gcdb_display_cmdline_arg(pbuf, buf_size);
-			|       |               |
-			|       |               |   // 屏供应商提供的头文件中的 panel config 信息保存到
-			|       |               |-- panel_node = panelstruct.paneldata->panel_node_id;
+                        |       |-- pbuf = display_panel_buf
+                        |       |       |-- gcdb_display_cmdline_arg(pbuf, buf_size);
+                        |       |               |
+                        |       |               |   // 将屏供应商提供的头文件中的 panel config 保存到 pbuf 中
+                        |       |               |-- panel_node = panelstruct.paneldata->panel_node_id;
                         |       |               |-- strlcpy(pbuf, panel_node, buf_size);
                         |       |
+                        |       |   // 设置拷贝的目的地址为 cmdline_final(cmdline)
                         |       |-- dst = cmdline_final;
+                        |       |
+                        |       |   // 设置拷贝的源地址为 display_panel_buf(panel config)
                         |       |-- src = display_panel_buf;
                         |       |-- if (have_cmdline)
                         |       |        --dst;
+                        |       |
+                        |       |   // 将 panel config 追加到 cmdline
                         |       |-- while ((*dst++ = *src++));
                         |       |--return cmdline_final;
                         |
@@ -667,6 +675,59 @@ void aboot_init(const struct app_descriptor *app)
 ```
 
 kernel 阶段解析 cmdline 获取到 lk 传递过来的屏信息。
+
+```c
+// file: src/kernel/msm-3.18/drivers/video/msm/mdss/mdss_dsi.c
+
+module_init(mdss_dsi_ctrl_driver_init);
+
+static int __init mdss_dsi_ctrl_driver_init(void)
+        mdss_dsi_ctrl_register_driver();
+                platform_driver_register(&mdss_dsi_ctrl_driver);
+
+static struct platform_driver mdss_dsi_ctrl_driver = {
+        .probe = mdss_dsi_ctrl_probe,
+        .remove = mdss_dsi_ctrl_remove,
+        .shutdown = NULL,
+        .driver = {
+                .name = "mdss_dsi_ctrl",
+                .of_match_table = mdss_dsi_ctrl_dt_match,
+        },
+};
+
+// 匹配的 dts 节点在这里指定 "qcom,mdss-dsi-ctrl"
+static const struct of_device_id mdss_dsi_ctrl_dt_match[] = {
+        {.compatible = "qcom,mdss-dsi-ctrl"},
+        {}
+};
+
+static int mdss_dsi_ctrl_probe(struct platform_device *pdev)
+        |
+        |-- struct device_node *dsi_pan_node = mdss_dsi_config_panel(pdev, index);
+                |
+                |   // 取出私有数据
+                |-- struct mdss_dsi_ctrl_pdata *ctrl_pdata = platform_get_drvdata(pdev);
+                |-- char panel_cfg[MDSS_MAX_PANEL_LEN];
+                |
+                |   // 通过私有数据中的函数接口获取到屏的配置信息
+                |-- mdss_dsi_get_panel_cfg(panel_cfg, ctrl_pdata);
+                |       |-- ctrl = ctrl_pdata;
+                |       |
+                |       |   // 这里通过 panel_intf_type 函数获取到屏的配置信息
+                |       |   // 这里获取到的字符串是 0:qcom,dsi_co55swr8_st7703_720p_video:1:none:cfg:single_dsi
+                |       |-- pan_cfg = ctrl->mdss_util->panel_intf_type(MDSS_PANEL_INTF_DSI);
+                |       |-- strlcpy(panel_cfg, pan_cfg->arg_cfg, sizeof(pan_cfg->arg_cfg));
+                |
+                |   // 通过 panel_cfg 找到对应屏的 dts 节点, panel_cfg 字符串就是从 cmd line 中解析出来的
+                |-- struct device_node *dsi_pan_node = mdss_dsi_find_panel_of_node(pdev, panel_cfg);
+                |
+                |   // 拿到了对应的 dts 节点就可以去初始化 panel 了
+                |-- mdss_dsi_panel_init(dsi_pan_node, ctrl_pdata, ndx);
+                |-- return dsi_pan_node;
+```
+
+lk 阶段在将 panel_config 写进 cmdline，kernel 中解析出出 cmdline 中 panel_config 的 panel_node_id，找到 panel_node_id 同名的 dts 节点。最后将找到的 dts 节点中的 "qcom,mdss-dsi-panel-name" 属性值写进 device info。
+总结一下：这样的话就要求 panel_config->panel_node_id 要和屏 dts 节点名要相同。
 
 ### 2.2 kernel 阶段 lcd 移植流程
 
@@ -715,17 +776,24 @@ msm8937-pmi8937-mtp.dts:17:     #include "msm8937-pmi8937-mtp.dtsi"
 Makefile:196:                   msm8937-pmi8937-mtp.dtb \
 ```
 
-#### 修改点3. xxx
+#### 修改点3. 设置默认屏驱动(可选)
 
 ```c
 msm8937-mtp.dtsi (kernel\msm-3.18\arch\arm64\boot\dts\qcom)
-        &dsi_hsd_ili9881_720p_video {
-                qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
-                //qcom,mdss-dsi-pan-enable-dynamic-fps;                                 // 高通目前是定帧率的
-                qcom,mdss-dsi-pan-fps-update = "dfps_immediate_porch_mode_vfp";
-        };
-        &dsi_jdf_lianovation_st7703_720p_video {
-                qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
-                qcom,mdss-dsi-pan-fps-update = "dfps_immediate_porch_mode_vfp";
-        };
+ 
+ &mdss_dsi0 {
++        qcom,dsi-pref-prim-pan = <&dsi_hsd_ili9881_720p_video>;
+         pinctrl-names = "mdss_default", "mdss_sleep";
+         pinctrl-0 = <&mdss_dsi_active &mdss_te_active>;
+         pinctrl-1 = <&mdss_dsi_suspend &mdss_te_suspend>;
+         qcom,platform-te-gpio = <&tlmm 24 0>;
+         qcom,platform-enable-gpio = <&tlmm 99 0>;
+         qcom,platform-reset-gpio = <&tlmm 60 0>;
+         qcom,platform-bklight-en-gpio = <&tlmm 98 0>;
+ };
+ 
++&dsi_hsd_ili9881_720p_video {
++        qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
++        qcom,mdss-dsi-pan-fps-update = "dfps_immediate_porch_mode_vfp";
++};
 ```
