@@ -747,7 +747,7 @@ eg: src/kernel/msm-3.18/arch/arm/boot/dts/qcom/dsi-panel-st7703_boe55-video.dtsi
 };
 ```
 
-问1: msm8937 是 64 位的处理器, 为什么是在 arch/arm/ 下添加文件, 而不是在 arch/arm64 目录下添加?
+问1: msm8937 是 64 位的处理器, 为什么是在 arch/arm/ 下添加文件, 而不是在 arch/arm64 目录下添加?  
 答1: 其实 arch/arm64 是通过软链接方式链接到 arch/arm 目录下，因此不管在哪个目录修改都是可以生效的。
 
 ```bash
@@ -763,10 +763,10 @@ lrwxrwxrwx 1 wangbing wangbing   26 Apr  3 23:07 qcom -> ../../../arm/boot/dts/q
 #include "dsi-panel-st7703_boe55-video.dtsi"
 ```
 
-问1: dtb 编译的时候是如何确定哪些文件(哪些 dts 和 dtsi 文件)会被编译呢?
+问1: dtb 编译的时候是如何确定哪些文件(哪些 dts 和 dtsi 文件)会被编译呢?  
 答1: 编译 dtb 文件也是根据 Makefile 规则编译的，在 src/kernel/msm-3.18/arch/arm/boot/dts/qcom/ 目录的 Makefile 决定哪些 dts 文件会编译成 dtb。编译的时候会编译 Makefile 中指定的 dtb 文件, 而这些 dtb 文件对应的源文件(dts文件)会依赖于相关的 dtsi 文件。编译的时候就会将 dts 以及依赖的 dtsi 一起编译(类似于c文件依赖h文件一样)。
 
-问2: dsi-panel-st7703_boe55-video.dtsi 文件的依赖关系是?
+问2: dsi-panel-st7703_boe55-video.dtsi 文件的依赖关系是?  
 答2: 一直根据 grep 搜索对应关键字, 就可以找到依赖关系:
 
 ```bash
@@ -803,9 +803,55 @@ msm8937-mtp.dtsi (kernel\msm-3.18\arch\arm64\boot\dts\qcom)
 
 ### 3.1 lk 阶段背光驱动
 
+#### 3.1.1 开启背光位置
+
+```c
+// file: src/bootable/bootloader/lk/app/aboot/aboot.c
+
+APP_START(aboot)
+	.init = aboot_init,
+APP_END
+
+void aboot_init(const struct app_descriptor *app)
+        target_display_init(device.display_panel);
+                gcdb_display_init(oem.panel, MDP_REV_50, (void *)MIPI_FB_ADDR);
+
+                        /* 绑定 panel 上电函数 */
+                        panel.power_func = mdss_dsi_panel_power;
+                        msm_display_init(&panel);
+
+                                /* 在上电的位置同时将背光点亮 */
+                                pdata->power_func(1, &(panel->panel_info);
+
+static int mdss_dsi_panel_power(uint8_t enable, struct msm_panel_info *pinfo)
+        target_ldo_ctrl(enable, pinfo);
+                wled_init(pinfo);
+                        pm8x41_wled_config_slave_id(3);
+
+                        /* 配置 PMIC 点亮背光 */
+                        qpnp_wled_init(&config);
+```
+
 ### 3.2 kernel 阶段背光驱动
 
-#### 3.2.1 背光驱动注册流程
+#### 3.2.1 对上抛出的接口
+
+LCD 背光驱动是通过内核提供的 LED 子系统注册的驱动，因此对应用层抛出的接口创建在 /sys/class/leds/ 目录下。
+
+```bash
+C:\Users\wangbing>adb shell
+
+# 读取手机当前设置的背光等级
+android:/ # cat /sys/class/leds/lcd-backlight/brightness
+74
+
+# 设置背光等级为 100/255(手机变得更亮)
+android:/ # echo 100 > /sys/class/leds/lcd-backlight/brightness
+android:/ # cat /sys/class/leds/lcd-backlight/brightness
+100
+```
+
+#### 3.2.2 驱动注册流程
 
 ```c
 // file: src/kernel/msm-3.18/drivers/video/msm/mdss/mdss_fb.c
@@ -870,14 +916,14 @@ static void mdss_dsi_panel_bl_ctrl(struct mdss_panel_data *pdata, u32 bl_level)
         led_trigger_event(bl_led_trigger, bl_level);
 ```
 
-#### 3.2.2 自问自答
+#### 3.2.3 自问自答
 
-问1: 背光驱动没有实现 brightness_get 接口，为什么却可以通过 cat /sys/class/leds/lcd-backlight/brightness 节点获得亮度值?
+问1: 背光驱动没有实现 brightness_get 接口，为什么却可以通过 cat /sys/class/leds/lcd-backlight/brightness 节点获得亮度值?  
 答1: 看了下读 brightness 节点的函数，在读取 /sys/class/leds/lcd-backlight/brightness 节点时。
 如果定义了 brightness_get 函数，则将会获取到的亮度值，传递给 backlight_led->brightness，然后将 backlight_led->brightness 值返回；
 如果没有定义 brightness_get 函数，则直接返回 backlight_led->brightness 的值。
 
-问2: 现在的疑问就变成了，为什么没有通过 brightness_get 获取亮度值，backlight_led->brightness 也是准确的?
+问2: 现在的疑问就变成了，为什么没有通过 brightness_get 获取亮度值，backlight_led->brightness 也是准确的?  
 答2: 看了下写 brightness 节点的函数，在写入亮度值 /sys/class/leds/lcd-backlight/brightness 节点时。
 同时将写入的值记录到了 backlight_led->brightness 变量中，因此读取的时候其实获取到的是上一次写入的值。
 
@@ -915,6 +961,8 @@ static ssize_t brightness_store(struct device *dev, struct device_attribute *att
 ```
 
 ## 四. LCD 静电
+
+
 
 ## 五. LCD 框架
 
