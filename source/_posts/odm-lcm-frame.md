@@ -7,7 +7,7 @@ tags:
 categories: ODM
 ---
 
-## 一. lk 阶段 lcd 框架
+## 一. LCD 兼容
 
 ### 1.1 lk 阶段启动流程概览
 
@@ -245,6 +245,7 @@ struct app_descriptor _app_aboot __SECTION(".apps") = { .name = aboot,
 #### 兼容原理概述
 
 先介绍下 lcd 的 id 寄存器：MIPI 组织规定各屏厂生产的 lcd ic 的 id 信息必须记录在 A1 寄存器(RDDDB: Read DDB start)中，A1 寄存器中除了第一个字节的供应商 id 是由 MIPI 组织分配的，其他字节供应商可以自定义，可以记录 ic id、ic version code 什么的。这个随便找一块 lcd 的 datasheet 看一下就明白了。
+
 再简单介绍下 lcd 的兼容原理：原理其实很简单，其实就是代码中已经包含有多块 lcd 驱动程序，在开机过程中，会去读出实际接在手机上的 lcd 模组的 id，将读出的 id 和各个屏驱动中的 id 做对比，如果某一个 lcd 驱动的 id 和读出的 id 一样，则驱动匹配成功，就使用这个匹配上的驱动程序操作 lcd。
 
 基于上面原理性的介绍，我们也就大概明确了稍后分析 lcd 兼容这部分代码需要理清的主线逻辑了，这里列举一下：
@@ -509,7 +510,118 @@ static int init_panel_data(struct panel_struct *panelstruct, struct msm_panel_in
 
 标号4和标号5的位置比较简单，不涉及其他没有贴出来的变量或函数，就不再去详细介绍。
 
-### 1.4 lk 阶段 lcd 移植流程
+### 1.4 kernel 阶段 lcd 兼容原理
+
+#### 兼容原理概述
+
+kernel 阶段的兼容相比 lk 阶段要简单的多，由于在 lk 阶段已经做过了遍历所有屏驱动探测 lcd 的动作，再加上 bootloader 可以通过 cmdline 传参机制传递信息到 kernel 中。这样的话，完全可以通过 cmdline 将 lk 阶段的探测到的屏名称直接传递到 kernel，kernel 拿到传递过来的 panel name 再去加载对应的屏驱动。
+
+#### 兼容框架分析
+
+lk 阶段将屏信息写入 cmdline。
+
+```c
+// file: src/bootable/bootloader/lk/app/aboot/aboot.c
+
+char display_panel_buf[MAX_PANEL_BUF_SIZE];
+
+void aboot_init(const struct app_descriptor *app)
+        |-- memset(display_panel_buf, '\0', MAX_PANEL_BUF_SIZE);
+        |-- boot_linux_from_mmc();
+                |-- boot_linux(hdr->kernel_addr, hdr->tags_addr, hdr->cmdline, board_machtype(), hdr->ramdisk_addr, hdr->ramdisk_size);
+                        |-- cmdline = hdr->cmdline;
+                        |-- final_cmdline = update_cmdline(cmdline);
+                        |       |-- target_display_panel_node(display_panel_buf, MAX_PANEL_BUF_SIZE);
+                        |       |-- pbuf = display_panel_buf
+                        |       |       |-- gcdb_display_cmdline_arg(pbuf, buf_size);
+                        |       |               |
+                        |       |               |   // 将屏供应商提供的头文件中的 panel config 保存到 pbuf 中
+                        |       |               |-- panel_node = panelstruct.paneldata->panel_node_id;
+                        |       |               |-- strlcpy(pbuf, panel_node, buf_size);
+                        |       |
+                        |       |   // 设置拷贝的目的地址为 cmdline_final(cmdline)
+                        |       |-- dst = cmdline_final;
+                        |       |
+                        |       |   // 设置拷贝的源地址为 display_panel_buf(panel config)
+                        |       |-- src = display_panel_buf;
+                        |       |-- if (have_cmdline)
+                        |       |        --dst;
+                        |       |
+                        |       |   // 将 panel config 追加到 cmdline
+                        |       |-- while ((*dst++ = *src++));
+                        |       |--return cmdline_final;
+                        |
+                        |-- update_device_tree((void *)tags, (const char *)final_cmdline, ramdisk, ramdisk_size);
+                                |-- fdt_appendprop_string(fdt, offset, (const char*)"bootargs", (const void*)cmdline);
+                                ... ... 待补充
+```
+
+kernel 阶段解析 cmdline 获取到 lk 传递过来的屏信息。
+
+```c
+// file: src/kernel/msm-3.18/drivers/video/msm/mdss/mdss_dsi.c
+
+module_init(mdss_dsi_ctrl_driver_init);
+
+static int __init mdss_dsi_ctrl_driver_init(void)
+        mdss_dsi_ctrl_register_driver();
+                platform_driver_register(&mdss_dsi_ctrl_driver);
+
+static struct platform_driver mdss_dsi_ctrl_driver = {
+        .probe = mdss_dsi_ctrl_probe,
+        .remove = mdss_dsi_ctrl_remove,
+        .shutdown = NULL,
+        .driver = {
+                .name = "mdss_dsi_ctrl",
+                .of_match_table = mdss_dsi_ctrl_dt_match,
+        },
+};
+
+// 匹配的 dts 节点在这里指定 "qcom,mdss-dsi-ctrl"
+static const struct of_device_id mdss_dsi_ctrl_dt_match[] = {
+        {.compatible = "qcom,mdss-dsi-ctrl"},
+        {}
+};
+
+static int mdss_dsi_ctrl_probe(struct platform_device *pdev)
+        |
+        |-- struct device_node *dsi_pan_node = mdss_dsi_config_panel(pdev, index);
+                |
+                |   // 取出私有数据
+                |-- struct mdss_dsi_ctrl_pdata *ctrl_pdata = platform_get_drvdata(pdev);
+                |-- char panel_cfg[MDSS_MAX_PANEL_LEN];
+                |
+                |   // 通过私有数据中的函数接口获取到屏的配置信息
+                |-- mdss_dsi_get_panel_cfg(panel_cfg, ctrl_pdata);
+                |       |-- ctrl = ctrl_pdata;
+                |       |
+                |       |   // 这里通过 panel_intf_type 函数获取到屏的配置信息
+                |       |   // 这里获取到的字符串是 0:qcom,dsi_co55swr8_st7703_720p_video:1:none:cfg:single_dsi
+                |       |-- pan_cfg = ctrl->mdss_util->panel_intf_type(MDSS_PANEL_INTF_DSI);
+                |       |-- strlcpy(panel_cfg, pan_cfg->arg_cfg, sizeof(pan_cfg->arg_cfg));
+                |
+                |   // 通过 panel_cfg 找到对应屏的 dts 节点, panel_cfg 字符串就是从 cmd line 中解析出来的
+                |-- struct device_node *dsi_pan_node = mdss_dsi_find_panel_of_node(pdev, panel_cfg);
+                |
+                |   // 拿到了对应的 dts 节点就可以去初始化 panel 了
+                |-- mdss_dsi_panel_init(dsi_pan_node, ctrl_pdata, ndx);
+                |       |
+                |       |   // 将 panel nane 取出，写到 device info 中
+                |       |-- panel_name = of_get_property(node, "qcom,mdss-dsi-panel-name", NULL);
+                |       |-- sprintf(wind_device_info.lcm_module_info.ic_name, "%s", panel_name);
+                |       |
+                |       |   // 绑定点亮背光的操作函数，后面又背光章节专门介绍
+                |       |-- ctrl_pdata->panel_data.set_backlight = mdss_dsi_panel_bl_ctrl;
+                |
+                |-- return dsi_pan_node;
+```
+
+lk 阶段在将 panel_config 写进 cmdline，kernel 中解析出出 cmdline 中 panel_config 的 panel_node_id，找到 panel_node_id 同名的 dts 节点。最后将找到的 dts 节点中的 "qcom,mdss-dsi-panel-name" 属性值写进 device info。
+总结一下：这样的话就要求 panel_config->panel_node_id 要和屏 dts 节点名要相同。
+
+## 二. LCD 移植
+
+### 2.1 lk 阶段 lcd 移植流程
 
 经过上面兼容框架的分析，现在接着思考下在 lk 阶段 porting 一块新的 lcd 需要修改哪些地方。
 
@@ -611,123 +723,12 @@ index d838a8b..742053b 100644
         return data;
  }
 
--#define DISPLAY_MAX_PANEL_DETECTION 4
-+#define DISPLAY_MAX_PANEL_DETECTION 5
+-#define DISPLAY_MAX_PANEL_DETECTION 3
++#define DISPLAY_MAX_PANEL_DETECTION 4
  static uint32_t auto_pan_loop = 0;
 
  uint32_t oem_panel_max_auto_detect_panels()
 ```
-
-### 1.5 lk 阶段 lcd 框架分析
-
-对于 i2c、spi、usb 总线下的设备，写驱动程序的时候，涉及到两部分，分别是总线驱动和设备驱动。以 i2c 为例，总线驱动和设备驱动各自有对应的分工，总线驱动负责控制 i2c 控制器(片上外设)，将 i2c 控制器寄存器相关的控制逻辑封装成符合 i2c 规范的 start、stop、ask、sendbyte、readbyte 等接口函数。至于设备驱动，只需要根据设备的 datasheet 并按照总线的规范调用总线提供的接口函数，就可以实现和设备的通信。
-和我们熟悉的 i2c、spi、usb 一样，mipi dsi 协议也是一样的，也分为总线驱动和设备驱动。我们分析框架，对于总线驱动部分只需要找到对应的接口函数即可，暂不去深入分析 mipi 总线驱动，重点看看点亮一块屏，设备驱动端上电时序，如下 init code，以及让 lcd 显示一帧图片需要如何操作。
-
-未完待续。
-
-
-## 二. kernel 阶段 lcd 框架
-
-### 2.1 kernel 阶段 lcd 兼容原理
-
-#### 兼容原理概述
-
-kernel 阶段的兼容相比 lk 阶段要简单的多，由于在 lk 阶段已经做过了遍历所有屏驱动探测 lcd 的动作，再加上 bootloader 可以通过 cmdline 传参机制传递信息到 kernel 中。这样的话，完全可以通过 cmdline 将 lk 阶段的探测到的屏名称直接传递到 kernel，kernel 拿到传递过来的 panel name 再去加载对应的屏驱动。
-
-#### 兼容框架分析
-
-lk 阶段将屏信息写入 cmdline。
-
-```c
-// file: src/bootable/bootloader/lk/app/aboot/aboot.c
-
-char display_panel_buf[MAX_PANEL_BUF_SIZE];
-
-void aboot_init(const struct app_descriptor *app)
-        |-- memset(display_panel_buf, '\0', MAX_PANEL_BUF_SIZE);
-        |-- boot_linux_from_mmc();
-                |-- boot_linux(hdr->kernel_addr, hdr->tags_addr, hdr->cmdline, board_machtype(), hdr->ramdisk_addr, hdr->ramdisk_size);
-                        |-- cmdline = hdr->cmdline;
-                        |-- final_cmdline = update_cmdline(cmdline);
-                        |       |-- target_display_panel_node(display_panel_buf, MAX_PANEL_BUF_SIZE);
-                        |       |-- pbuf = display_panel_buf
-                        |       |       |-- gcdb_display_cmdline_arg(pbuf, buf_size);
-                        |       |               |
-                        |       |               |   // 将屏供应商提供的头文件中的 panel config 保存到 pbuf 中
-                        |       |               |-- panel_node = panelstruct.paneldata->panel_node_id;
-                        |       |               |-- strlcpy(pbuf, panel_node, buf_size);
-                        |       |
-                        |       |   // 设置拷贝的目的地址为 cmdline_final(cmdline)
-                        |       |-- dst = cmdline_final;
-                        |       |
-                        |       |   // 设置拷贝的源地址为 display_panel_buf(panel config)
-                        |       |-- src = display_panel_buf;
-                        |       |-- if (have_cmdline)
-                        |       |        --dst;
-                        |       |
-                        |       |   // 将 panel config 追加到 cmdline
-                        |       |-- while ((*dst++ = *src++));
-                        |       |--return cmdline_final;
-                        |
-                        |-- update_device_tree((void *)tags, (const char *)final_cmdline, ramdisk, ramdisk_size);
-                                |-- fdt_appendprop_string(fdt, offset, (const char*)"bootargs", (const void*)cmdline);
-                                ... ... 待补充
-```
-
-kernel 阶段解析 cmdline 获取到 lk 传递过来的屏信息。
-
-```c
-// file: src/kernel/msm-3.18/drivers/video/msm/mdss/mdss_dsi.c
-
-module_init(mdss_dsi_ctrl_driver_init);
-
-static int __init mdss_dsi_ctrl_driver_init(void)
-        mdss_dsi_ctrl_register_driver();
-                platform_driver_register(&mdss_dsi_ctrl_driver);
-
-static struct platform_driver mdss_dsi_ctrl_driver = {
-        .probe = mdss_dsi_ctrl_probe,
-        .remove = mdss_dsi_ctrl_remove,
-        .shutdown = NULL,
-        .driver = {
-                .name = "mdss_dsi_ctrl",
-                .of_match_table = mdss_dsi_ctrl_dt_match,
-        },
-};
-
-// 匹配的 dts 节点在这里指定 "qcom,mdss-dsi-ctrl"
-static const struct of_device_id mdss_dsi_ctrl_dt_match[] = {
-        {.compatible = "qcom,mdss-dsi-ctrl"},
-        {}
-};
-
-static int mdss_dsi_ctrl_probe(struct platform_device *pdev)
-        |
-        |-- struct device_node *dsi_pan_node = mdss_dsi_config_panel(pdev, index);
-                |
-                |   // 取出私有数据
-                |-- struct mdss_dsi_ctrl_pdata *ctrl_pdata = platform_get_drvdata(pdev);
-                |-- char panel_cfg[MDSS_MAX_PANEL_LEN];
-                |
-                |   // 通过私有数据中的函数接口获取到屏的配置信息
-                |-- mdss_dsi_get_panel_cfg(panel_cfg, ctrl_pdata);
-                |       |-- ctrl = ctrl_pdata;
-                |       |
-                |       |   // 这里通过 panel_intf_type 函数获取到屏的配置信息
-                |       |   // 这里获取到的字符串是 0:qcom,dsi_co55swr8_st7703_720p_video:1:none:cfg:single_dsi
-                |       |-- pan_cfg = ctrl->mdss_util->panel_intf_type(MDSS_PANEL_INTF_DSI);
-                |       |-- strlcpy(panel_cfg, pan_cfg->arg_cfg, sizeof(pan_cfg->arg_cfg));
-                |
-                |   // 通过 panel_cfg 找到对应屏的 dts 节点, panel_cfg 字符串就是从 cmd line 中解析出来的
-                |-- struct device_node *dsi_pan_node = mdss_dsi_find_panel_of_node(pdev, panel_cfg);
-                |
-                |   // 拿到了对应的 dts 节点就可以去初始化 panel 了
-                |-- mdss_dsi_panel_init(dsi_pan_node, ctrl_pdata, ndx);
-                |-- return dsi_pan_node;
-```
-
-lk 阶段在将 panel_config 写进 cmdline，kernel 中解析出出 cmdline 中 panel_config 的 panel_node_id，找到 panel_node_id 同名的 dts 节点。最后将找到的 dts 节点中的 "qcom,mdss-dsi-panel-name" 属性值写进 device info。
-总结一下：这样的话就要求 panel_config->panel_node_id 要和屏 dts 节点名要相同。
 
 ### 2.2 kernel 阶段 lcd 移植流程
 
@@ -797,3 +798,83 @@ msm8937-mtp.dtsi (kernel\msm-3.18\arch\arm64\boot\dts\qcom)
 +        qcom,mdss-dsi-pan-fps-update = "dfps_immediate_porch_mode_vfp";
 +};
 ```
+
+## 三. LCD 背光
+
+### 3.1 lk 阶段背光驱动
+
+### 3.2 kernel 阶段背光驱动
+
+```c
+// file: src/kernel/msm-3.18/drivers/video/msm/mdss/mdss_fb.c
+
+module_init(mdss_fb_init);
+
+int __init mdss_fb_init(void)
+        platform_driver_register(&mdss_fb_driver);
+
+static struct platform_driver mdss_fb_driver = {
+        .probe    = mdss_fb_probe,
+        .remove   = mdss_fb_remove,
+        .suspend  = mdss_fb_suspend,
+        .resume   = mdss_fb_resume,
+        .shutdown = mdss_fb_shutdown,
+        .driver   = {
+                .name = "mdss_fb",
+                .of_match_table = mdss_fb_dt_match,
+                .pm = &mdss_fb_pm_ops,
+        },
+};
+
+/* LED 设备，设备注册成功后，将会创建 /sys/class/leds/lcd-backlight 目录 */
+static struct led_classdev backlight_led = {
+        .name           = "lcd-backlight",              /* LED 设备的名字 */
+        .brightness     = 127,                          /* 默认亮度为 127 */
+        .brightness_set = mdss_fb_set_bl_brightness,    /* 设置亮度的函数 */
+        .max_brightness = 255,                          /* 最大亮度为 255 */
+};
+
+/* 注册 LED 设备的位置 */
+static int mdss_fb_probe(struct platform_device *pdev)
+        backlight_led.brightness = mfd->panel_info->brightness_max;
+        backlight_led.max_brightness = mfd->panel_info->brightness_max;
+        if (led_classdev_register(&pdev->dev, &backlight_led))
+
+/* 设置 LED 亮度的函数 */
+static void mdss_fb_set_bl_brightness(struct led_classdev *led_cdev, enum led_brightness value)
+
+        /* 如果传入的值比支持设置的最大值要大，则修改为支持的最大值 */
+        if (value > mfd->panel_info->brightness_max)
+                value = mfd->panel_info->brightness_max;
+
+        /* 加了个 log 将 value 和 bl_lvl 打印出来，确认到这里的映射关系为: bl_lvl = value / 255 * 4096 */
+        /* 说明这里是将上层传递过来的 0~255 的亮度等级转化为实际 PMIC 支持的亮度等级 */
+        /* This maps android backlight level 0 to 255 into driver backlight level 0 to bl_max with rounding */
+        MDSS_BRIGHT_TO_BL(bl_lvl, value, mfd->panel_info->bl_max, mfd->panel_info->brightness_max);
+
+        /* 设置屏幕背光，最终还是调用 panel 中绑定的函数 */
+        mdss_fb_set_backlight(mfd, bl_lvl);
+                pdata->set_backlight(pdata, bl_lvl);
+
+/* 搜索看看 set_backlight 在哪里绑定了操作函数 */
+---- set_backlight Matches (13 in 5 files) ----
+mdss_dsi_panel_init in mdss_dsi_panel.c (msm\mdss) : 	ctrl_pdata->panel_data.set_backlight = mdss_dsi_panel_bl_ctrl;
+mdss_edp_device_register in mdss_edp.c (msm\mdss) : 	edp_drv->panel_data.set_backlight = mdss_edp_set_backlight;
+
+/* 实际控制背光的位置在这里 */
+static void mdss_dsi_panel_bl_ctrl(struct mdss_panel_data *pdata, u32 bl_level)
+        led_trigger_event(bl_led_trigger, bl_level);
+```
+
+问1: 没有看到获取当前亮度的接口在哪里实现，但是却可以 cat /sys/class/leds/lcd-backlight/brightness 节点?
+
+## 四. LCD 静电
+
+## 五. LCD 框架
+
+### 5.1 lk 阶段 lcd 框架分析
+
+对于 i2c、spi、usb 总线下的设备，写驱动程序的时候，涉及到两部分，分别是总线驱动和设备驱动。以 i2c 为例，总线驱动和设备驱动各自有对应的分工，总线驱动负责控制 i2c 控制器(片上外设)，将 i2c 控制器寄存器相关的控制逻辑封装成符合 i2c 规范的 start、stop、ask、sendbyte、readbyte 等接口函数。至于设备驱动，只需要根据设备的 datasheet 并按照总线的规范调用总线提供的接口函数，就可以实现和设备的通信。
+和我们熟悉的 i2c、spi、usb 一样，mipi dsi 协议也是一样的，也分为总线驱动和设备驱动。我们分析框架，对于总线驱动部分只需要找到对应的接口函数即可，暂不去深入分析 mipi 总线驱动，重点看看点亮一块屏，设备驱动端上电时序，如下 init code，以及让 lcd 显示一帧图片需要如何操作。
+
+未完待续。
