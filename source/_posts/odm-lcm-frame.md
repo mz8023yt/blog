@@ -805,6 +805,8 @@ msm8937-mtp.dtsi (kernel\msm-3.18\arch\arm64\boot\dts\qcom)
 
 ### 3.2 kernel 阶段背光驱动
 
+#### 3.2.1 背光驱动注册流程
+
 ```c
 // file: src/kernel/msm-3.18/drivers/video/msm/mdss/mdss_fb.c
 
@@ -863,10 +865,54 @@ mdss_edp_device_register in mdss_edp.c (msm\mdss) : 	edp_drv->panel_data.set_bac
 
 /* 实际控制背光的位置在这里 */
 static void mdss_dsi_panel_bl_ctrl(struct mdss_panel_data *pdata, u32 bl_level)
+
+        /* 控制 PMI 的 WLED 引脚控制背光 */
         led_trigger_event(bl_led_trigger, bl_level);
 ```
 
-问1: 没有看到获取当前亮度的接口在哪里实现，但是却可以 cat /sys/class/leds/lcd-backlight/brightness 节点?
+#### 3.2.2 自问自答
+
+问1: 背光驱动没有实现 brightness_get 接口，为什么却可以通过 cat /sys/class/leds/lcd-backlight/brightness 节点获得亮度值?
+答1: 看了下读 brightness 节点的函数，在读取 /sys/class/leds/lcd-backlight/brightness 节点时。
+如果定义了 brightness_get 函数，则将会获取到的亮度值，传递给 backlight_led.brightness，然后将 backlight_led-> brightness 值返回；
+如果没有定义 brightness_get 函数，则直接返回 backlight_led.brightness 的值。
+
+问2: 现在的疑问就变成了，为什么没有通过 brightness_get 获取亮度值，backlight_led.brightness 也是准确的?
+答2: 看了下写 brightness 节点的函数，在写入亮度值 /sys/class/leds/lcd-backlight/brightness 节点时。
+同时将写入的值记录到了 backlight_led.brightness 变量中，因此读取的时候其实获取到的是上一次写入的值。
+
+上述两个疑问涉及到的代码如下：
+
+```c
+// file: src/kernel/msm-3.18/drivers/leds/led-class.c
+
+/* 定义了属性节点 */
+static DEVICE_ATTR_RW(brightness);
+
+/* 读属性时调用的函数 */
+static ssize_t brightness_show(struct device *dev, struct device_attribute *attr, char *buf)
+        |-- struct led_classdev *led_cdev = dev_get_drvdata(dev);
+        |-- led_update_brightness(led_cdev);
+        |       |
+        |       |   // 如果定义了 brightness_get 函数，则将获取到的亮度值记录到 led_cdev->brightness
+        |       |-- if (led_cdev->brightness_get)
+        |                led_cdev->brightness = ed_cdev->brightness_get(led_cdev);
+        |
+        |   // 这里直接将 led_cdev->brightness 返回
+        |-- return sprintf(buf, "%u\n", led_cdev->brightness);
+
+/* 写属性时调用的函数 */
+static ssize_t brightness_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
+        |-- struct led_classdev *led_cdev = dev_get_drvdata(dev);
+        |-- ret = kstrtoul(buf, 10, &state);
+        |-- __led_set_brightness(led_cdev, state);
+                |
+                |   // 先将写进的值保存到 led_cdev->brightness 中
+                |-- led_cdev->brightness = value;
+                |
+                |   // 接着调用 brightness_set 函数控制 PMI 调整背光
+                |-- led_cdev->brightness_set(led_cdev, value);
+```
 
 ## 四. LCD 静电
 
