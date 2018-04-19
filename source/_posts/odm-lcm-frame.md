@@ -874,12 +874,12 @@ static void mdss_dsi_panel_bl_ctrl(struct mdss_panel_data *pdata, u32 bl_level)
 
 问1: 背光驱动没有实现 brightness_get 接口，为什么却可以通过 cat /sys/class/leds/lcd-backlight/brightness 节点获得亮度值?
 答1: 看了下读 brightness 节点的函数，在读取 /sys/class/leds/lcd-backlight/brightness 节点时。
-如果定义了 brightness_get 函数，则将会获取到的亮度值，传递给 backlight_led.brightness，然后将 backlight_led-> brightness 值返回；
-如果没有定义 brightness_get 函数，则直接返回 backlight_led.brightness 的值。
+如果定义了 brightness_get 函数，则将会获取到的亮度值，传递给 backlight_led->brightness，然后将 backlight_led->brightness 值返回；
+如果没有定义 brightness_get 函数，则直接返回 backlight_led->brightness 的值。
 
-问2: 现在的疑问就变成了，为什么没有通过 brightness_get 获取亮度值，backlight_led.brightness 也是准确的?
+问2: 现在的疑问就变成了，为什么没有通过 brightness_get 获取亮度值，backlight_led->brightness 也是准确的?
 答2: 看了下写 brightness 节点的函数，在写入亮度值 /sys/class/leds/lcd-backlight/brightness 节点时。
-同时将写入的值记录到了 backlight_led.brightness 变量中，因此读取的时候其实获取到的是上一次写入的值。
+同时将写入的值记录到了 backlight_led->brightness 变量中，因此读取的时候其实获取到的是上一次写入的值。
 
 上述两个疑问涉及到的代码如下：
 
@@ -896,7 +896,7 @@ static ssize_t brightness_show(struct device *dev, struct device_attribute *attr
         |       |
         |       |   // 如果定义了 brightness_get 函数，则将获取到的亮度值记录到 led_cdev->brightness
         |       |-- if (led_cdev->brightness_get)
-        |                led_cdev->brightness = ed_cdev->brightness_get(led_cdev);
+        |                led_cdev->brightness = led_cdev->brightness_get(led_cdev);
         |
         |   // 这里直接将 led_cdev->brightness 返回
         |-- return sprintf(buf, "%u\n", led_cdev->brightness);
