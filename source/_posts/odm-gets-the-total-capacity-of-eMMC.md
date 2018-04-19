@@ -230,3 +230,46 @@ static int mmc_read_ext_csd(struct mmc_card *card，u8 *ext_csd) {
 然后使用扇区大小乘以扇区数目，得到 ROM 容量，最后通过移位操作将得到的扇区容量换算成 GB 为单位的大小值。  
 最后在 sys 节点中将这个计算出的 GB 为单位的大小值传递给上层。
 
+### 扩展思考
+
+上面仅仅是实现了从 emmc 内部动态的读取出 ROM 的容量，那么如果我们要动态获取到 RAM 容量要怎么操作?
+
+思路1: 通过读取 /proc/meminfo 节点，获取到 MemTotal 的大小对应的字符串(获取前27个字符)，通过解析这段字符串，得到 MemTotal 大小，再换算成 GB 单位即可。
+
+```
+C:\Users\wangbing>adb shell cat /proc/meminfo
+MemTotal:        1853224 kB
+MemFree:           28664 kB
+MemAvailable:     798400 kB
+Buffers:           30224 kB
+Cached:           837224 kB
+SwapCached:         5068 kB
+Active:           808916 kB
+Inactive:         480956 kB
+Active(anon):     387560 kB
+Inactive(anon):   131520 kB
+Active(file):     421356 kB
+Inactive(file):   349436 kB
+Unevictable:      105380 kB
+Mlocked:          105380 kB
+SwapTotal:        633748 kB
+SwapFree:         556328 kB
+Dirty:                 0 kB
+Writeback:             0 kB
+AnonPages:        527880 kB
+Mapped:           437540 kB
+Shmem:             13324 kB
+Slab:             141104 kB
+SReclaimable:      53496 kB
+SUnreclaim:        87608 kB
+KernelStack:       32016 kB
+PageTables:        41228 kB
+NFS_Unstable:          0 kB
+Bounce:                0 kB
+WritebackTmp:          0 kB
+CommitLimit:     1560360 kB
+Committed_AS:   89069992 kB
+VmallocTotal:   244318144 kB
+VmallocUsed:      182136 kB
+VmallocChunk:   243976548 kB
+```
