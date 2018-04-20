@@ -191,8 +191,13 @@ links_icon: link
 links_title: Links
 links_layout: block
 #links_layout: inline
-#links:
-  #Title: http://example.com/
+links:
+  icon: http://fontawesome.dashgame.com/
+  kernel: https://www.kernel.org/
+  mipi: https://mipi.org/
+  git: https://git-scm.com/
+  hexo: https://hexo.io/
+  next: http://theme-next.iissnan.com/
 
 # Sidebar Avatar
 # in theme directory(source/images): /images/avatar.gif
