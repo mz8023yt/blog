@@ -154,7 +154,12 @@ site_state: true
 # Key is the link label showing to end users.
 # Value before `||` delimeter is the target permalink.
 # Value after `||` delimeter is the name of FontAwesome icon. If icon (with or without delimeter) is not specified, globe icon will be loaded.
-#social:
+# 图标可以在 http://fontawesome.dashgame.com/ 网站上找
+social:
+  E-Mail: mailto:mz8023yt@163.com || envelope
+  GitHub: https://github.com/mz8023yt || github
+  Jianshu: https://www.jianshu.com/u/30fc01f695b9 || book
+  Geeker: http://www.androidgeeker.com/ || android
   #GitHub: https://github.com/yourname || github
   #E-Mail: mailto:yourname@gmail.com || envelope
   #Google: https://plus.google.com/yourname || google
