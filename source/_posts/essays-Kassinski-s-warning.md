@@ -2,6 +2,7 @@
 title: '[Essays] 论工业社会及其未来'
 date: 2018-04-21 01:49:22
 tags:
+categories: Essays
 ---
 
 原文链接: <http://www.shidi.org/sf_10621D12034549A69A2FFA2D9C0EF9D6_277_30764B41120.html>
