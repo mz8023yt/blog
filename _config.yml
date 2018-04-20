@@ -10,6 +10,13 @@ author: Paul Wang
 language: zh-CN
 timezone:
 
+# Word Count
+symbols_count_time:
+  symbols: true
+  time: true
+  total_symbols: true
+  total_time: true
+
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
 url: http://yoursite.com
