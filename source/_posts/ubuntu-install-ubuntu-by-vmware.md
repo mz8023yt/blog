@@ -1,6 +1,6 @@
 ---
 title: '[Ubuntu] 使用 VMware 虚拟机安装 Ubuntu 系统'
-date: 2018-02-25 23:48:53
+date: 2018-01-01 23:48:53
 tags:
   - ubuntu
   - vmware
