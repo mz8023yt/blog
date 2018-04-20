@@ -53,7 +53,6 @@ android$ logcat -b all | grep -E 'Paul|kpdpwr|mIsScreenOn'
 1-01 20:52:19.848  2503  2503 D PowerSaverService: mIsScreenOn = true
 
 ## power key
-
 01-01 20:44:12.082     0     0 W         : [wind-tick][kpdpwr] start add timer
 01-01 20:44:12.255  2503  2503 D PowerSaverService: mIsScreenOn = true
 
