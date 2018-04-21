@@ -10,6 +10,13 @@ author: Paul Wang
 language: zh-CN
 timezone:
 
+# Search
+search:
+  path: search.xml
+  field: post
+  format: html
+  limit: 10000
+
 # Word Count
 symbols_count_time:
   symbols: true
