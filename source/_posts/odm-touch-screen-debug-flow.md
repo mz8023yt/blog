@@ -38,9 +38,9 @@ C:\Users\wangbing>adb shell cat /proc/interrupts | findstr "hxcommon"
 
 ```
 C:\Users\wangbing>adb shell
-ASUS_X00P_1:/ # cd proc/android_touch/
-ASUS_X00P_1:/proc/android_touch # echo 3 > debug_level
-ASUS_X00P_1:/proc/android_touch # cat debug_level
+android:/ # cd proc/android_touch/
+android:/proc/android_touch # echo 3 > debug_level
+android:/proc/android_touch # cat debug_level
 3
 ```
 

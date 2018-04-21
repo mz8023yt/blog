@@ -20,7 +20,7 @@ categories: ODM
 
 ### 实现方式
 
-#### 第一步：将脚本放入代码工程中
+**第一步**：将脚本放入代码工程中
 
 随便放在哪个目录里面都是可以的。
 
@@ -30,9 +30,9 @@ alps\kernel-3.18\drivers\misc\mediatek\video\common\aal20\aal_shell\pwr-normal.s
 alps\kernel-3.18\drivers\misc\mediatek\video\common\aal20\aal_shell\pwr-ultra.sh
 ```
 
-#### 第二步：修改 device.mk 文件, 将脚本拷贝到 /system/etc 目录下
+**第二步**：修改 device.mk 文件, 将脚本拷贝到 /system/etc 目录下
 
-在 alps\device\ginreen\E262L\device.mk 追加:
+在 alps\device\ginreen\"ProjectName"\device.mk 追加:
 
 ```bash
 PRODUCT_COPY_FILES += kernel-3.18/drivers/misc/mediatek/video/common/aal20/aal_shell/pwr-normal.sh:system/etc/pwr-normal.sh
@@ -41,15 +41,15 @@ PRODUCT_COPY_FILES += kernel-3.18/drivers/misc/mediatek/video/common/aal20/aal_s
 ```
 
 源文件于目标文件通过冒号分隔, 冒号前是源文件, 冒号后是目标文件。  
-源文件默认根目录是 alps 目录, 目标文件默认根目录是 alps\out\target\product\E262L 目录。
+源文件默认根目录是 alps 目录, 目标文件默认根目录是 alps\out\target\product\"ProjectName" 目录。
 
-#### 第三步：修改 init.mt6755.rc 文件, 给脚本设置执行权限
+**第三步**：修改 init.mt6755.rc 文件, 给脚本设置执行权限
 
 可以修改以下这几个文件，这里我是修改的 init.mt6755.rc 文件。
 
 ```
 alps\device\mediatek\mt6755\init.mt6755.rc
-alps\device\ginreen\E262L\init.project.rc
+alps\device\ginreen\"ProjectName"\init.project.rc
 alsp\system\core\rootdir\init.rc
 ```
 
