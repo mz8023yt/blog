@@ -521,18 +521,29 @@ valine:
 # Gitment
 # Introduction: https://imsun.net/posts/gitment-introduction/
 gitment:
-  enable: false
-  mint: true # RECOMMEND, A mint on Gitment, to support count, language and proxy_gateway
-  count: true # Show comments count in post meta area
-  lazy: false # Comments lazy loading with a button
-  cleanly: false # Hide 'Powered by ...' on footer, and more
-  language: # Force language, or auto switch by theme
-  github_user: # MUST HAVE, Your Github Username
-  github_repo: # MUST HAVE, The name of the repo you use to store Gitment comments
-  client_id: # MUST HAVE, Github client id for the Gitment
-  client_secret: # EITHER this or proxy_gateway, Github access secret token for the Gitment
-  proxy_gateway: # Address of api proxy, See: https://github.com/aimingoo/intersect
-  redirect_protocol: # Protocol of redirect_uri with force_redirect_protocol when mint enabled
+  enable: true
+  # RECOMMEND, A mint on Gitment, to support count, language and proxy_gateway
+  mint: true
+  # Show comments count in post meta area
+  count: true
+  # Comments lazy loading with a button
+  lazy: false
+  # Hide 'Powered by ...' on footer, and more
+  cleanly: true
+  # Force language, or auto switch by theme
+  language:
+  # MUST HAVE, Your Github Username
+  github_user: mz8023yt 
+  # MUST HAVE, The name of the repo you use to store Gitment comments
+  github_repo: blog.comments
+  # MUST HAVE, Github client id for the Gitment
+  client_id: 3b0f546a740181c255a9
+  # EITHER this or proxy_gateway, Github access secret token for the Gitment
+  client_secret: 41b269fc8cc71a77e91b3485769b325e249b15dd
+  # Address of api proxy, See: https://github.com/aimingoo/intersect
+  proxy_gateway:
+  # Protocol of redirect_uri with force_redirect_protocol when mint enabled
+  redirect_protocol:
 
 # Baidu Share
 # Available value:
