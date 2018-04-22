@@ -220,9 +220,7 @@ index b325026..55a78f9 100755
 
 https://github.com/theme-next/hexo-symbols-count-time
 
-```
-npm install hexo-symbols-count-time --save
-```
+        npm install hexo-symbols-count-time --save
 
 ```
 diff --git a/_config.yml b/_config.yml
@@ -245,13 +243,30 @@ index cbd41d3..025ef2d 100644
  url: http://yoursite.com
 ```
 
-#### 文章打赏功能
+#### 添加文章打赏
+
+```
+diff --git a/themes/next/_config.yml b/themes/next/_config.yml
+index 1748ad2..a5c5d51 100755
+--- a/themes/next/_config.yml
++++ b/themes/next/_config.yml
+@@ -293,9 +293,9 @@ codeblock:
+   #description: ex. subscribe to my blog by scanning my public wechat account
+
+ # Reward
+-#reward_comment: Donate comment here
+-#wechatpay: /images/wechatpay.jpg
+-#alipay: /images/alipay.jpg
++reward_comment: 坚持原创技术分享，您的支持将鼓励我继续创作！
++wechatpay: /maziot/weixin.png
++alipay: /maziot/alipay.png
+ #bitcoin: /images/bitcoin.png
+
+ # Related popular posts
 
 ```
 
-```
-
-#### 评论系统
+#### 添加评论系统
 
 ```
 diff --git a/themes/next/_config.yml b/themes/next/_config.yml
@@ -323,7 +338,7 @@ index 4b0a05f..c751ba3 100755
 ```
 
 
-#### 站内搜索
+#### 添加站内搜索
 
 ```
 diff --git a/themes/next/_config.yml b/themes/next/_config.yml
@@ -365,6 +380,56 @@ index 025ef2d..b863a15 100644
  # Word Count
  symbols_count_time:
    symbols: true
+```
+
+#### 添加在线歌单
+
+        hexo new page music
+
+```
+diff --git a/source/music/index.md b/source/music/index.md
+new file mode 100644
+index 0000000..07bf7ce
+--- /dev/null
++++ b/source/music/index.md
+@@ -0,0 +1,13 @@
++---
++title: '[Maziot] 网易云歌单'
++date: 2018-04-22 18:52:56
++---
++
++<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer@1.7/dist/APlayer.min.css">
++<script src="https://cdn.jsdelivr.net/npm/aplayer@1.7/dist/APlayer.min.js"></script>
++<div class="aplayer"
++    data-id="821903731"
++    data-server="netease"
++    data-type="playlist">
++</div>
++<script src="https://cdn.jsdelivr.net/npm/meting@1.1/dist/Meting.min.js"></script>
+diff --git a/themes/next/_config.yml b/themes/next/_config.yml
+index c751ba3..e44e5ec 100755
+--- a/themes/next/_config.yml
++++ b/themes/next/_config.yml
+@@ -122,6 +122,7 @@ menu:
+   categories: /categories/ || th
+   tags: /tags/ || tags
+   about: /about/ || user
++  music: /music/ || music
+   #schedule: /schedule/ || calendar
+   #sitemap: /sitemap.xml || sitemap
+   #commonweal: /404/ || heartbeat
+diff --git a/themes/next/languages/zh-CN.yml b/themes/next/languages/zh-CN.yml
+index 8b73150..db73de1 100644
+--- a/themes/next/languages/zh-CN.yml
++++ b/themes/next/languages/zh-CN.yml
+@@ -14,6 +14,7 @@ menu:
+   search: 搜索
+   schedule: 日程表
+   sitemap: 站点地图
++  music: 音乐
+   commonweal: 公益 404
+ sidebar:
+   overview: 站点概览
 ```
 
 
