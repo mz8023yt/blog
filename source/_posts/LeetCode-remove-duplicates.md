@@ -9,7 +9,7 @@ categories: LeetCode
 
 原题链接: <https://leetcode-cn.com/explore/interview/card/top-interview-questions-easy/1/array/21/>
 
-### 题目(数组类)
+### 初级算法(数组类)
 
 给定一个排序数组，你需要在原地删除重复出现的元素，使得每个元素只出现一次，返回移除后数组的新长度。
 不要使用额外的数组空间，你必须在原地修改输入数组并在使用 O(1) 额外空间的条件下完成。
