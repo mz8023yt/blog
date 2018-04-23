@@ -37,7 +37,7 @@ categories: LeetCode
         输出: 0
         解释: 在这种情况下, 没有交易完成, 所以最大利润为 0。
 
-### 我的解答
+### 我的解答(4ms)
 
 ```
 int maxProfit(int* prices, int pricesSize)
@@ -53,7 +53,7 @@ int maxProfit(int* prices, int pricesSize)
         /* 所有买获得的总收益 */
         int total = 0;
 
-        for(i = 0;  i < pricesSize; i++)
+        for(i = 0;  i < pricesSize - 1; i++)
         {
                 /* 如果后一天价格更高，并且没有买入，那赶紧买起来 */
                 if((prices[i + 1] > prices[i]) && (status == 0))
@@ -71,6 +71,33 @@ int maxProfit(int* prices, int pricesSize)
                 }
         }
 
+        /* 最后一天股票还在手上，赶紧卖 */
+        if(status == 1)
+        {
+                profit = prices[i] - profit;
+                total = total + profit;
+        }
+
         return total;
 }
 ```
+
+### 最优解答(0ms)
+
+```
+int maxProfit(int prices[], int n)
+{
+        int profit = 0;
+        for(int i = 0; i < n - 1; i++)
+        {
+                int temp = prices[i+1] - prices[i];
+                if(temp > 0)
+                profit += temp;
+        }
+        return profit;
+}
+```
+
+### 分析不足
+
+待补充！
