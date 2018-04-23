@@ -26,12 +26,17 @@ categories: LeetCode
         函数应该返回新的长度 5, 并且原数组 nums 的前五个元素被修改为 0, 1, 2, 3, 4。
         你不需要考虑数组中超出新长度后面的元素。
 
-### 我的解答
+### 我的解答(12ms)
 
 ```
-int removeDuplicates(int* nums, int numsSize) {
+int removeDuplicates(int* nums, int numsSize)
+{
         int i = 0;
         int valid = 0;
+
+        /* 兼容空数组 */
+        if(numsSize == 0)
+                return 0;
 
         for(i = 0; i < numsSize; i++)
         {
@@ -45,3 +50,31 @@ int removeDuplicates(int* nums, int numsSize) {
         return valid + 1;
 }
 ```
+
+### 最优解答(8ms)
+
+```
+int removeDuplicates(int* nums, int numsSize) {
+        int i = -1, j;
+        if (numsSize > 0)
+        {
+                for (i = 0, j = 1; i < numsSize; i++)
+                {
+                        while (nums[i] == nums[j] && j < numsSize)
+                        {
+                                j++;
+                        }
+                        if (j == numsSize)
+                        {
+                                break;
+                        }
+                        nums[i + 1] = nums[j];
+                }
+        }
+	return i + 1;
+}
+```
+
+### 分析不足
+
+待补充！
