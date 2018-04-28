@@ -22,10 +22,12 @@ categories: ODM
 adb shell /data/data/PhoneInfoTest 0 1 [SSN]
 adb shell /data/data/PhoneInfoTest 0 0
 
-## IMEI
+## IMEI eg. 358463051106605 358463051106613
 adb shell /data/data/PhoneInfoTest 1 1 [IMEI1]
 adb shell /data/data/PhoneInfoTest 1 2 [IMEI2]
 adb shell /data/data/PhoneInfoTest 1 0 [IMEI1]
+adb shell getprop persist.radio.device.imei
+adb shell getprop persist.radio.device.imei2
 
 ## BT eg. 5CFF356DB1D9
 adb shell /data/data/PhoneInfoTest 2 1 [BT Mac]
