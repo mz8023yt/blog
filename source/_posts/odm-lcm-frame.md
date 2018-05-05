@@ -836,20 +836,26 @@ static int mdss_dsi_panel_power(uint8_t enable, struct msm_panel_info *pinfo)
 
 #### 3.2.1 对上抛出的接口
 
-LCD 背光驱动是通过内核提供的 LED 子系统注册的驱动，因此对应用层抛出的接口创建在 /sys/class/leds/ 目录下。
+LCD 背光驱动是通过内核提供的 LED 子系统注册的驱动，因此对应用层抛出的接口创建在 `/sys/class/leds/` 目录下。
 
-```bash
-C:\Users\wangbing>adb shell
+        C:\Users\wangbing> adb shell
 
-# 读取手机当前设置的背光等级
-android:/ # cat /sys/class/leds/lcd-backlight/brightness
-74
+        # 读取手机当前设置的背光等级
+        android:/ # cat /sys/class/leds/lcd-backlight/brightness
+        74
 
-# 设置背光等级为 100/255(手机变得更亮)
-android:/ # echo 100 > /sys/class/leds/lcd-backlight/brightness
-android:/ # cat /sys/class/leds/lcd-backlight/brightness
-100
-```
+        # 设置背光等级为 100/255(手机变得更亮)
+        android:/ # echo 100 > /sys/class/leds/lcd-backlight/brightness
+        android:/ # cat /sys/class/leds/lcd-backlight/brightness
+        100
+
+如何查看 logcat log 确认当前设置的背光值, 可以通过 `DisplayPowerController: Animating brightness:` 关键字确认。
+
+        C:\Users\wangbing>adb shell
+        android:/ # logcat -s DisplayPowerController | grep "brightness"
+        01-01 01:26:21.588  1206  1246 I DisplayPowerController: Animating brightness: target=102, rate=0, asusAnimator=false
+        01-01 01:26:21.588  1206  1246 I DisplayPowerController: Animating brightness: target=102, rate=0, asusAnimator=false
+        01-01 01:26:21.591  1206  1246 I DisplayPowerController: Animating brightness: target=102, rate=0, asusAnimator=false
 
 #### 3.2.2 驱动注册流程
 
@@ -960,11 +966,15 @@ static ssize_t brightness_store(struct device *dev, struct device_attribute *att
                 |-- led_cdev->brightness_set(led_cdev, value);
 ```
 
-## 四. LCD 静电
+## 四. LCD 上电
 
 
 
-## 五. LCD 框架
+## 五. LCD 静电
+
+
+
+## 六. LCD 框架
 
 ### 5.1 lk 阶段 lcd 框架分析
 
