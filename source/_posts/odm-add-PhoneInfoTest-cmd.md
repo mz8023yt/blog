@@ -212,6 +212,10 @@ index 1abe502..d5f5c48 100755
 单编模块，编译更快，编译完成之后，push 到手机中执行看效果，最后将 90PN 文件 push 出来，确认是否真的有写到。
 
 ```
+## 配置 Android 工程
+[wangbing@ubuntu: ~/src] source build/envsetup.h
+[wangbing@ubuntu: ~/src] lunch <Project>
+
 ## 单编
 [wangbing@ubuntu: ~/src]$ rm -rf out/target/product/<Project>/vendor/bin/PhoneInfoTest ~/
 [wangbing@ubuntu: ~/src]$ mmm vendor/qcom/proprietary/diag/PhoneInfoTest/
@@ -226,6 +230,22 @@ index 1abe502..d5f5c48 100755
 [wangbing@ubuntu: ~/src]$ adb shell /data/data/PhoneInfoTest 13 0
 90AZ01K1-S00050
 
-## 导出再次确认
+## 导出到桌面，使用文本工具查看对应16进制字符再次确认
 C:\Users\wangbing>adb pull /factory/90PN Desktop
 ```
+
+### 产线工具
+
+前面有提到工厂产线生产时写入料号信息已经实现，这里也简单概述下，产线写 90PN 的相关实现逻辑。产线流水线有一个专门的写号站位，会将手机的很多信息统一写到手机的 NVRAM 中。这很多的信息中自然也包括 90PN 信息。而产线的工具实际上是调用高通开放的 API 接口实现和手机通信的，这个 API 接口其实就是 QXDM 工具中发送 cmd 是同样的东西。因此在验证阶段，我们用 QXDM 发送对应的 cmd 就可以实现产线工具同样的写 90PN 的效果。
+
+写入 90PN 对应的 QXDM 指令是：`Send_data 0x4b 0xc9 0xcc 0xff 12 <data>`，其中 data 有格式要求，data 的格式是，"一次发一个字符的 ASCII 码的十进制数，用空格隔开"。
+
+倘若我们要往 90PN 中写入 `Hello` 字符，我们应该这么干：
+1. 查一下 ASCII 码表，看看 `Hello` 中的 5 个字符的十进制格式的 ASCII 码是多少？
+   查了下，分别是：72 101 108 108 111
+2. 接下里使用 QXDM 发送 `Send_data 0x4b 0xc9 0xcc 0xff 12 72 101 108 108 111`。
+3. 使用 `adb shell /data/data/PhoneInfoTest 13 0` 查看是否写入成功。
+
+### ASCII 码表
+
+[百度百科 ASCII 码表](https://baike.baidu.com/item/ASCII/309296?fr=aladdin)
