@@ -160,9 +160,6 @@ social:
   E-Mail: mailto:mz8023yt@163.com || envelope
   GitHub: https://github.com/mz8023yt || github
   Jianshu: https://www.jianshu.com/u/30fc01f695b9 || book
-  Geeker: http://www.androidgeeker.com/ || android
-  Font: http://fontawesome.dashgame.com/ || font-awesome
-  Kernel: https://www.kernel.org/ || linux
 
 social_icons:
   enable: true
@@ -189,6 +186,9 @@ links:
   git: https://git-scm.com/
   hexo: https://hexo.io/
   next: http://theme-next.iissnan.com/
+  gif: https://ezgif.com/
+  font: http://fontawesome.dashgame.com/
+  kernel: https://www.kernel.org/
 
 # Sidebar Avatar
 # in theme directory(source/images): /images/avatar.gif
