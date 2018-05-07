@@ -610,7 +610,9 @@ static int mdss_dsi_ctrl_probe(struct platform_device *pdev)
                 |       |-- panel_name = of_get_property(node, "qcom,mdss-dsi-panel-name", NULL);
                 |       |-- sprintf(wind_device_info.lcm_module_info.ic_name, "%s", panel_name);
                 |       |
-                |       |   // 绑定点亮背光的操作函数，后面又背光章节专门介绍
+                |       |   // 绑定上电和背光控制的操作函数，后面有章节专门介绍
+                |       |-- ctrl_pdata->on = mdss_dsi_panel_on;
+                |       |-- ctrl_pdata->off = mdss_dsi_panel_off;
                 |       |-- ctrl_pdata->panel_data.set_backlight = mdss_dsi_panel_bl_ctrl;
                 |
                 |-- return dsi_pan_node;
@@ -803,33 +805,29 @@ msm8937-mtp.dtsi (kernel\msm-3.18\arch\arm64\boot\dts\qcom)
 
 ### 3.1 lk 阶段背光驱动
 
-#### 3.1.1 开启背光位置
+#### 3.1.1 点亮背光位置
 
 ```c
 // file: src/bootable/bootloader/lk/app/aboot/aboot.c
 
-APP_START(aboot)
-	.init = aboot_init,
-APP_END
-
 void aboot_init(const struct app_descriptor *app)
         target_display_init(device.display_panel);
                 gcdb_display_init(oem.panel, MDP_REV_50, (void *)MIPI_FB_ADDR);
-
-                        /* 绑定 panel 上电函数 */
-                        panel.power_func = mdss_dsi_panel_power;
+                        /* 根据 panel 的协议绑定对应的背光控制函数 */
+                        if (pan_type == PANEL_TYPE_DSI)
+                                panel.bl_func = mdss_dsi_bl_enable;
                         msm_display_init(&panel);
-
-                                /* 在上电的位置同时将背光点亮 */
                                 pdata->power_func(1, &(panel->panel_info);
 
-static int mdss_dsi_panel_power(uint8_t enable, struct msm_panel_info *pinfo)
-        target_ldo_ctrl(enable, pinfo);
-                wled_init(pinfo);
-                        pm8x41_wled_config_slave_id(3);
-
-                        /* 配置 PMIC 点亮背光 */
-                        qpnp_wled_init(&config);
+static int mdss_dsi_bl_enable(uint8_t enable)
+        panel_backlight_ctrl(enable);
+                target_backlight_ctrl(panelstruct.backlightinfo, enable);
+                        msm8952_wled_backlight_ctrl(enable);
+                                qpnp_wled_enable_backlight(enable);
+                                        /* #define QPNP_WLED_MAX_BR_LEVEL 1638 */
+                                        qpnp_wled_set_level(gwled, QPNP_WLED_MAX_BR_LEVEL);
+                                        qpnp_wled_enable(gwled, gwled->ctrl_base, enable);
+                                qpnp_ibb_enable(enable);
 ```
 
 ### 3.2 kernel 阶段背光驱动
@@ -968,15 +966,58 @@ static ssize_t brightness_store(struct device *dev, struct device_attribute *att
 
 ## 四. LCD 上电
 
+### 4.1 LCD 上电前言
 
+每一块 lcd ic 在 spec 上都会详细的描述它们上电的时序要求。以往工厂生产的时候，经常会出现由于上电时序不对或者是各路电之前的延时过短不符合 spec 规范导致的花屏、读不到 panel id 甚至烧坏 ic 的情况。因此在阅读屏驱动框架的时候，必须要准确的找到上电这块的代码位置。  
+目前我们公司大部分的 LCD 都有两路电，一路是给 ic 供电的 IOVDD，另一路是加在玻璃上的偏置电压(VSP、VSN)，同时在 spec 上电时序的描述中，还会多加一路 ic 的 reset 信号，spec 上会给出这三者详细的上电掉电时序要求。  
+我们要做的就是去 check 这个位置，看看是不是符合 spec 要求，不符合就将其修改。一般来说修改也仅仅是修改偏置电压，交换 reset 和偏置电压的前后顺序，需改时序间的延时之类的。
+
+### 4.2 lk 阶段开机上电位置
+
+```c
+// file: src/bootable/bootloader/lk/app/aboot/aboot.c
+
+void aboot_init(const struct app_descriptor *app)
+        target_display_init(device.display_panel);
+                gcdb_display_init(oem.panel, MDP_REV_50, (void *)MIPI_FB_ADDR);
+                        /* 根据 panel 的协议绑定对应的上电函数 */
+                        if (pan_type == PANEL_TYPE_DSI)
+                                panel.power_func = mdss_dsi_panel_power;
+                        msm_display_init(&panel);
+                                pdata->power_func(1, &(panel->panel_info);
+
+static int mdss_dsi_panel_power(uint8_t enable, struct msm_panel_info *pinfo)
+        if (enable) {
+                target_ldo_ctrl(enable, pinfo);
+                mdss_dsi_panel_reset(enable);
+        } else {
+                mdss_dsi_panel_reset(enable);
+                target_ldo_ctrl(enable, pinfo);
+        }
+
+int target_ldo_ctrl(uint8_t enable, struct msm_panel_info *pinfo)
+        if (enable) {
+                regulator_enable(ldo_num);      /* 使能 IOVDD */
+                wled_init(pinfo);               /* 配置 VSP VSN 电压电流 */
+                qpnp_ibb_enable(true);          /* 使能 VSP VSN */
+        } else {
+                ... ...
+        }
+```
+
+### 4.3 kernel 阶段上下电位置
+
+```
+mdss_dsi_panel_power_ctrl
+        mdss_dsi_panel_power_on
+                msm_dss_enable_vreg
+```
 
 ## 五. LCD 静电
 
-
-
 ## 六. LCD 框架
 
-### 5.1 lk 阶段 lcd 框架分析
+### 6.1 lk 阶段 lcd 框架分析
 
 对于 i2c、spi、usb 总线下的设备，写驱动程序的时候，涉及到两部分，分别是总线驱动和设备驱动。以 i2c 为例，总线驱动和设备驱动各自有对应的分工，总线驱动负责控制 i2c 控制器(片上外设)，将 i2c 控制器寄存器相关的控制逻辑封装成符合 i2c 规范的 start、stop、ask、sendbyte、readbyte 等接口函数。至于设备驱动，只需要根据设备的 datasheet 并按照总线的规范调用总线提供的接口函数，就可以实现和设备的通信。
 和我们熟悉的 i2c、spi、usb 一样，mipi dsi 协议也是一样的，也分为总线驱动和设备驱动。我们分析框架，对于总线驱动部分只需要找到对应的接口函数即可，暂不去深入分析 mipi 总线驱动，重点看看点亮一块屏，设备驱动端上电时序，如下 init code，以及让 lcd 显示一帧图片需要如何操作。
