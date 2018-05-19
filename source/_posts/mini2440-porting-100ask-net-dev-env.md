@@ -1,5 +1,5 @@
 ---
-title: '[Mini2440] 移植植韦东山视频 u-boot-1.1.6 + linux-2.6.22.6'
+title: '[Mini2440] 移植韦东山视频学习环境 u-boot-1.1.6 + linux-2.6.22.6'
 date: 2018-05-19 19:18:11
 tags:
   - mini2440
