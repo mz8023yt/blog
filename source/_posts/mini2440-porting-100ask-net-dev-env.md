@@ -1,11 +1,16 @@
 ---
-title: '[Mini2440] 移植韦东山视频学习环境 u-boot-1.1.6 + linux-2.6.22.6'
+title: '[Mini2440] 搭建韦东山二期视频学习环境'
 date: 2018-05-19 19:18:11
 tags:
   - mini2440
   - 100ask
 categories: Mini2440
 ---
+
+### 前言
+
+韦东山老师的视频使用的是 JZ2440 开发板，本来使用视频配套的 JZ2440 开发板学习起来才会事半功倍，但是目前我手头上已经有了 mini2440 开发板以及配套的 X35 LCD，想资源充分利用起来。并且韦东山老师的天下 2440 开发板都一样，让我更加断绝了购买 JZ2440 的欲望。因此决定使用 mini2440 学习韦东山老师的视频，才有了本文。  
+本文主要记录在 mini2440 上移植 u-boot-1.1.6 和 linux-2.6.22.6 学习环境，总结此文，以便日后查阅。  
 
 ### 一 配置编译 u-boot
 
@@ -192,118 +197,7 @@ categories: Mini2440
     user@vmware:~/mini2440/u-boot-1.1.6$ git add --all
     user@vmware:~/mini2440/u-boot-1.1.6$ git commit -m "conf: add the gitignore rule"
 
-
-#### 1.4 下载 u-boot 到开发板
-
-将 u-boot.bin 拷贝到 windows 目录下，这里我拷贝到 `D:\work\` 目录下，使用 oflash 工具下载到 nandflash 中
-
-```
-Microsoft Windows [版本 6.1.7600]
-版权所有 (c) 2009 Microsoft Corporation。保留所有权利。
-
-C:\Users\Administrator>d:
-
-D:\>cd work
-
-D:\work>oflash 0 1 0 0 0 u-boot.bin
-
-+---------------------------------------------------------+
-|   Flash Programmer v1.5.2 for OpenJTAG of www.100ask.net  |
-|   OpenJTAG is a USB to JTAG & RS232 tool based FT2232   |
-|   This programmer supports both of S3C24X0 & S3C6410    |
-|   Author: Email/MSN(thisway.diy@163.com), QQ(17653039)  |
-+---------------------------------------------------------+
-Usage:
-1. oflash, run with cfg.txt or prompt
-2. oflash [file], write [file] to flash with prompt
-3. oflash [-f config_file]
-4. oflash [jtag_type] [cpu_type] [flash_type] [read_or_write] [offset] [file]
-Select the JTAG type:
-0. OpenJTAG
-1. Dongle JTAG(parallel port)
-2. Wiggler JTAG(parallel port)
-Enter the number: 0
-Select the CPU:
-0. S3C2410
-1. S3C2440
-2. S3C6410
-Enter the number: 1
-
-device: 4 "2232C"
-deviceID: 0x14575118
-SerialNumber: FThecwJmA
-Description: USB<=>JTAG&RS232 AS3C2440 detected, cpuID = 0x0032409d
-
-[Main Menu]
- 0:Nand Flash prog     1:Nor Flash prog   2:Memory Rd/Wr     3:Exit
-Select the function to test:0
-
-[NAND Flash JTAG Programmer]
-Scan nand flash:
-Device 0: NAND 256MiB 3,3V 8-bit, sector size 128 KiB
-Total size: 256 MiB
- 0:Nand Flash Program      1:Nand Flash Print BlkPage   2:Exit
-Select the function to test :0
-
-[NAND Flash Writing Program]
-
-Source size: 0x306b4
-
-Available target block number: 0~2047
-Input target block number:0
-target start block number     =0
-target size        (0x20000*2) =0x40000
-STATUS:
-Epppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp
-Eppppppppppppppppppppppppppppppppp
-```
-
-#### 1.5 使用 nandflash 启动开发板
-
-成功下载 u-boot.bin 到 nandflash 后，将启动选项设置为 nand 启动，上电有以下 log 输出说明 u-boot 成功运行
-
-```
-U-Boot 1.1.6-g48373b63 (May 17 2018 - 22:46:07)
-
-DRAM:  64 MB
-Flash:  0 kB
-NAND:  256 MiB
-In:    serial
-Out:   serial
-Err:   serial
-UPLLVal [M:38h,P:2h,S:2h]
-MPLLVal [M:5ch,P:1h,S:1h]
-CLKDIVN:5h
-
-
-+---------------------------------------------+
-| S3C2440A USB Downloader ver R0.03 2004 Jan  |
-+---------------------------------------------+
-USB: IN_ENDPOINT:1 OUT_ENDPOINT:3
-FORMAT: <ADDR(DATA):4>+<SIZE(n+10):4>+<DATA:n>+<CS:2>
-NOTE: Power off/on or press the reset button for 1 sec
-      in order to get a valid USB device address.
-
-Hit any key to stop autoboot:  0 
-
-##### 100ask Bootloader for OpenJTAG #####
-[n] Download u-boot to Nand Flash
-[k] Download Linux kernel uImage
-[j] Download root_jffs2 image
-[y] Download root_yaffs image
-[d] Download to SDRAM & Run
-[z] Download zImage into RAM
-[g] Boot linux from RAM
-[f] Format the Nand Flash
-[s] Set the boot parameters
-[b] Boot the system
-[r] Reboot u-boot
-[q] Quit from menu
-Enter your selection: q
-OpenJTAG> 
-```
-
-#### 1.6 备份源码到 github 方便下次使用
+#### 1.4 备份源码到 github 方便下次使用
 
 在 github 上创建一个空的仓库，我创建的仓库地址为：`git@github.com:mini2440/100ask.u-boot-1.1.6.git`  
 查看目前本地仓库的状态，确认到并没有绑定远程仓库
@@ -321,10 +215,10 @@ OpenJTAG>
 
     user@vmware:~/mini2440/u-boot-1.1.6$ git push origin -u master
 
-#### 1.7 使用 github 仓库快速获取源码
+#### 1.5 使用 github 仓库快速获取源码
 
 直接克隆远程仓库配置编译即可  
-注意：需要修改 Makefile 指定交叉编译器
+注意：成功克隆工程后，您需要修改 Makefile 中交叉编译器路径为您的主机上编译器安装的实际路径。
 
     user@vmware:~/mini2440$ git clone git@github.com:mini2440/100ask.u-boot-1.1.6.git
     user@vmware:~/mini2440$ cd 100ask.u-boot-1.1.6/
@@ -448,18 +342,11 @@ OpenJTAG>
 
 #### 2.4 修改 lcd 驱动
 
-由于我使用的是 mini2440 开发板，配套的 LCD 是 X35，使用 100ask 提供的 kernel 无法直接点亮，因此需要修改 lcd 驱动文件。参考[comwise的博客](https://blog.csdn.net/comwise/article/details/11727445)将 X35 屏幕的驱动移植到 kenrel 中，可以点亮 LCD。  
-注意：博客提供的 LCD 驱动，直接移植好后编译会报错，需要屏蔽其中三行报错的头文件。
-
-我将修改好的 LCD 驱动和网卡驱动放了一份在 `git@github.com:mini2440/100ask.lcd.and.net.driver.git` 仓库中，可以克隆这个仓库获取
+由于我使用的是 mini2440 开发板，配套的 LCD 是 X35，使用 100ask 提供的 lcd 驱动无法直接点亮，因此需要修改 lcd 驱动文件。参考[comwise的博客](https://blog.csdn.net/comwise/article/details/11727445)将 X35 屏幕的驱动移植到 kenrel 中，可以点亮 LCD。  
+注意：博客提供的 LCD 驱动，直接移植好后编译会报错，需要屏蔽其中三行报错的头文件。  
+我将修改好的 LCD 驱动和网卡驱动放了一份在 `git@github.com:mini2440/100ask.lcd.and.net.driver.git` 仓库中，可以克隆这个仓库获取，获取仓库的命令如下
 
     user@vmware:~/mini2440$ git clone git@github.com:mini2440/100ask.lcd.and.net.driver.git
-    Cloning into '100ask.lcd.and.net.driver'...
-    remote: Counting objects: 7, done.
-    remote: Compressing objects: 100% (4/4), done.
-    remote: Total 7 (delta 0), reused 7 (delta 0), pack-reused 0
-    Receiving objects: 100% (7/7), 15.24 KiB | 0 bytes/s, done.
-    Checking connectivity... done.
 
 拷贝 LCD 驱动到内核中
 
@@ -476,36 +363,19 @@ OpenJTAG>
     index bd8b052..6f40cae
     --- a/drivers/video/Makefile
     +++ b/drivers/video/Makefile
-    @@ -106,7 +106,11 @@ obj-$(CONFIG_FB_MAXINE)              += maxinefb.o
-     obj-$(CONFIG_FB_TX3912)                  += tx3912fb.o
-     obj-$(CONFIG_FB_S1D13XXX)        += s1d13xxxfb.o
-     obj-$(CONFIG_FB_IMX)              += imxfb.o
-    -obj-$(CONFIG_FB_S3C2410)         += s3c2410fb.o
+    @@ -106,7 +106,11 @@ obj-$(CONFIG_FB_MAXINE)    += maxinefb.o
+     obj-$(CONFIG_FB_TX3912)                        += tx3912fb.o
+     obj-$(CONFIG_FB_S1D13XXX)                      += s1d13xxxfb.o
+     obj-$(CONFIG_FB_IMX)                           += imxfb.o
+    -obj-$(CONFIG_FB_S3C2410)                       += s3c2410fb.o
     +
     +# mz8023yt@163.com 20180520 begin >>> [2/2] realize the mini2440 x35 lcd driver
-    +obj-$(CONFIG_FB_S3C2410)         += mini2440_lcd_x35.o
+    +obj-$(CONFIG_FB_S3C2410)                       += mini2440_lcd_x35.o
     +# mz8023yt@163.com 20180520 end   <<< [2/2] realize the mini2440 x35 lcd driver
     +
-     obj-$(CONFIG_FB_PNX4008_DUM)     += pnx4008/
-     obj-$(CONFIG_FB_PNX4008_DUM_RGB)  += pnx4008/
-     obj-$(CONFIG_FB_IBM_GXT4500)     += gxt4500.o
-
-确认好总共是修改了两个文件，提交
-
-    user@vmware:~/mini2440/linux-2.6.22.6$ git st
-    On branch master
-    Changes not staged for commit:
-      (use "git add <file>..." to update what will be committed)
-      (use "git checkout -- <file>..." to discard changes in working directory)
-    
-    	modified:   drivers/video/Makefile
-    
-    Untracked files:
-      (use "git add <file>..." to include in what will be committed)
-    
-    	drivers/video/mini2440_lcd_x35.c
-    
-    no changes added to commit (use "git add" and/or "git commit -a")
+     obj-$(CONFIG_FB_PNX4008_DUM)                   += pnx4008/
+     obj-$(CONFIG_FB_PNX4008_DUM_RGB)               += pnx4008/
+     obj-$(CONFIG_FB_IBM_GXT4500)                   += gxt4500.o
     user@vmware:~/mini2440/linux-2.6.22.6$ git add --all
     user@vmware:~/mini2440/linux-2.6.22.6$ git commit -m "feature: realize the mini2440 x35 lcd driver"
 
@@ -530,19 +400,19 @@ OpenJTAG>
     index e819674..0e714ce
     --- a/drivers/net/Makefile
     +++ b/drivers/net/Makefile
-    @@ -194,7 +194,11 @@ obj-$(CONFIG_S2IO) += s2io.o
-     obj-$(CONFIG_MYRI10GE) += myri10ge/
-     obj-$(CONFIG_SMC91X) += smc91x.o
-     obj-$(CONFIG_SMC911X) += smc911x.o
-    -obj-$(CONFIG_DM9000) += dm9dev9000c.o
+    @@ -194,7 +194,11 @@ obj-$(CONFIG_S2IO)     += s2io.o
+     obj-$(CONFIG_MYRI10GE)                     += myri10ge/
+     obj-$(CONFIG_SMC91X)                       += smc91x.o
+     obj-$(CONFIG_SMC911X)                      += smc911x.o
+    -obj-$(CONFIG_DM9000)                       += dm9dev9000c.o
     +
     +# mz8023yt@163.com 20180520 begin >>> [2/2] realize the dm9000 net driver
-    +obj-$(CONFIG_DM9000) += mini2440_dm9000.o
+    +obj-$(CONFIG_DM9000)                       += mini2440_dm9000.o
     +# mz8023yt@163.com 20180520 end   <<< [2/2] realize the dm9000 net driver
     +
-     #obj-$(CONFIG_DM9000) += dm9000.o
-     #obj-$(CONFIG_DM9000) += dm9ks.o
-     obj-$(CONFIG_FEC_8XX) += fec_8xx/
+     #obj-$(CONFIG_DM9000)                      += dm9000.o
+     #obj-$(CONFIG_DM9000)                      += dm9ks.o
+     obj-$(CONFIG_FEC_8XX)                      += fec_8xx/
     user@vmware:~/mini2440/linux-2.6.22.6$ git add --all
     user@vmware:~/mini2440/linux-2.6.22.6$ git commit -m "feature: realize the mini2440 x35 lcd driver"
 
@@ -552,8 +422,9 @@ OpenJTAG>
 
 #### 2.6 提交忽略规则文件
 
-修改 .gitignore 文件，在 .* 后追加 `!.gitignore` 不忽略 .gitignore 文件。
+修改 .gitignore 文件，在 `.*` 后追加 `!.gitignore`，不忽略 .gitignore 文件。
 
+    user@vmware:~/mini2440$ vim .gitignore
      #
      # Normal rules
      #
@@ -563,9 +434,6 @@ OpenJTAG>
     +!.gitignore
     +
      *.o
-
-提交
-
     user@vmware:~/mini2440/linux-2.6.22.6$ git add --all
     user@vmware:~/mini2440/linux-2.6.22.6$ git commit -m "conf: add the git ignore files"
 
@@ -591,3 +459,171 @@ OpenJTAG>
 #### 2.8 使用 github 仓库快速获取源码
 
     user@vmware:~/mini2440$ git clone git@github.com:mini2440/100ask.linux-2.6.22.6.git
+    user@vmware:~/mini2440$ cd 100ask.linux-2.6.22.6/
+    user@vmware:~/mini2440/100ask.linux-2.6.22.6$ cp config_ok .config
+    user@vmware:~/mini2440/100ask.linux-2.6.22.6$ make uImage
+
+### 三 重烧整个系统
+
+#### 3.1 下载 u-boot 到 nandflash 上
+
+将 u-boot.bin 拷贝到 windows 目录下，这里我拷贝到 `D:\work\` 目录下，使用 oflash 工具下载到 nandflash 中
+
+```
+Microsoft Windows [版本 6.1.7600]
+版权所有 (c) 2009 Microsoft Corporation。保留所有权利。
+
+C:\Users\Administrator>d:
+
+D:\>cd work
+
+D:\work>oflash 0 1 0 0 0 u-boot.bin
+
++---------------------------------------------------------+
+|   Flash Programmer v1.5.2 for OpenJTAG of www.100ask.net  |
+|   OpenJTAG is a USB to JTAG & RS232 tool based FT2232   |
+|   This programmer supports both of S3C24X0 & S3C6410    |
+|   Author: Email/MSN(thisway.diy@163.com), QQ(17653039)  |
++---------------------------------------------------------+
+Usage:
+1. oflash, run with cfg.txt or prompt
+2. oflash [file], write [file] to flash with prompt
+3. oflash [-f config_file]
+4. oflash [jtag_type] [cpu_type] [flash_type] [read_or_write] [offset] [file]
+Select the JTAG type:
+0. OpenJTAG
+1. Dongle JTAG(parallel port)
+2. Wiggler JTAG(parallel port)
+Enter the number: 0
+Select the CPU:
+0. S3C2410
+1. S3C2440
+2. S3C6410
+Enter the number: 1
+
+device: 4 "2232C"
+deviceID: 0x14575118
+SerialNumber: FThecwJmA
+Description: USB<=>JTAG&RS232 AS3C2440 detected, cpuID = 0x0032409d
+
+[Main Menu]
+ 0:Nand Flash prog     1:Nor Flash prog   2:Memory Rd/Wr     3:Exit
+Select the function to test:0
+
+[NAND Flash JTAG Programmer]
+Scan nand flash:
+Device 0: NAND 256MiB 3,3V 8-bit, sector size 128 KiB
+Total size: 256 MiB
+ 0:Nand Flash Program      1:Nand Flash Print BlkPage   2:Exit
+Select the function to test :0
+
+[NAND Flash Writing Program]
+
+Source size: 0x306b4
+
+Available target block number: 0~2047
+Input target block number:0
+target start block number     =0
+target size        (0x20000*2) =0x40000
+STATUS:
+Epppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+Eppppppppppppppppppppppppppppppppp
+```
+
+#### 3.2 使用 nandflash 启动开发板
+
+成功下载 u-boot.bin 到 nandflash 后，将启动选项设置为 nand 启动，上电有以下 log 输出说明 u-boot 成功运行
+
+```
+U-Boot 1.1.6-g48373b63 (May 17 2018 - 22:46:07)
+
+DRAM:  64 MB
+Flash:  0 kB
+NAND:  256 MiB
+In:    serial
+Out:   serial
+Err:   serial
+UPLLVal [M:38h,P:2h,S:2h]
+MPLLVal [M:5ch,P:1h,S:1h]
+CLKDIVN:5h
+
+
++---------------------------------------------+
+| S3C2440A USB Downloader ver R0.03 2004 Jan  |
++---------------------------------------------+
+USB: IN_ENDPOINT:1 OUT_ENDPOINT:3
+FORMAT: <ADDR(DATA):4>+<SIZE(n+10):4>+<DATA:n>+<CS:2>
+NOTE: Power off/on or press the reset button for 1 sec
+      in order to get a valid USB device address.
+
+Hit any key to stop autoboot:  0 
+
+##### 100ask Bootloader for OpenJTAG #####
+[n] Download u-boot to Nand Flash
+[k] Download Linux kernel uImage
+[j] Download root_jffs2 image
+[y] Download root_yaffs image
+[d] Download to SDRAM & Run
+[z] Download zImage into RAM
+[g] Boot linux from RAM
+[f] Format the Nand Flash
+[s] Set the boot parameters
+[b] Boot the system
+[r] Reboot u-boot
+[q] Quit from menu
+Enter your selection: q
+OpenJTAG> 
+```
+
+#### 3.4 下载 kernel 到 nandflash 上
+
+u-boot 成功烧写后，便可以使用 u-boot 的 tftp 命令可以下载文件到 SDRAM 中。
+
+使用 tftp 命令下载的前提是：
+1. 开发板和 Windows 主机通过网线接在同一个路由器上
+2. Windows 主机上启动了 TPTP 服务
+
+配置好 Windows 主机的 ip，这里我的 Windows 主机的 ip 配置为 192.168.1.5。Windows 主机行运行 tftp 服务器软件，服务器 ip 默认就是 Windows 主机 ip。同时将要通过通过 tftp 下载到开发板的文件拷贝到 tftpd32.exe 服务器软件同级目录下。这里我拷贝了内核文件 uImage 和文件系统 fs_qtopia.yaffs2 到 tftp 目录下。  
+
+依次执行以下步骤将 kernel 烧写到 nandflash 中：
+1. 配置好开发板的 ip 以及 tftp 服务器 ip  
+   上电后，按下空格进入 U-Boot，执行下面的命令设置环境变量中开发板的 ip 为 192.168.1.8，指定 tftp 服务器的 ip 为 192.168.1.5。
+
+       OpenJTAG> setenv ipaddr 192.168.1.100
+       OpenJTAG> setenv serverip 192.168.1.5
+       OpenJTAG> save
+       OpenJTAG> reset
+
+2. 重启 U-Boot 之后使用 tftp 命令将 tftp 服务器中的文件下载到 SDRAM 0x30000000 地址处  
+
+       OpenJTAG> tftp 30000000 uImage
+
+3. 擦除 kernel 分区后再烧写到 nandflash 中
+   所谓的 kernel 分区其实只是 nandfalsh 中 0x00060000 - 0x00260000 这段地址空间
+
+       OpenJTAG> nand erase kernel
+
+   接下来要烧写到 nandflash 中，下面两条命令效果一致，二选一即可
+
+       OpenJTAG> nand write.jffs2 30000000 kernel
+       OpenJTAG> nand write.jffs2 30000000 60000 200000
+
+   这条命令的意思是：将 SDRAM 中 0x30000000 地址开始连续 0x200000 个字节写入 nandflash 0x60000 地址中去
+
+#### 3.3 下载文件系统到 nandflash 上
+
+同样的方式，执行下列命令可以将文件系统烧写到 nandflash 中
+
+    OpenJTAG> tftp 30000000 fs_qtopia.yaffs2
+    OpenJTAG> nand erase root
+
+烧写到 nandflash 中，下面三条命令效果一致，三选一即可
+
+    OpenJTAG> nand write.yaffs 30000000 root
+    OpenJTAG> nand write.yaffs 30000000 260000 $(filesize)
+    OpenJTAG> nand write.yaffs 30000000 260000 2f76b40
+
+上面烧写命令的含义其实就是，将 SDRAM 中 0x30000000 地址开始连续 0x2f76b40(49769280) 个字节写入 nandflash 0x260000 地址中去。不难发现其实 2f76b40 这个值就是 fs_qtopia.yaffs2 文件的大小。
+
+
+
