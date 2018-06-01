@@ -110,7 +110,7 @@ TP 手势 log，需要按照以下流程抓取log：
        [ 3858.636112] [HXTP][HIMAX TP MSG] checksum fail : checksum_cal: 0x7F8
        [ 3858.706841] [HXTP][HIMAX TP MSG] checksum fail : checksum_cal: 0x4C4
 
-   查看代码发现，这里 checksum 函数校验的是 TP i2c 回传的数据 buf，在手势模式下会去校验 buf 的格式是否满足手势键值的格式。若发现不符合手势数据 buf 格式，则会打印 log  
+   查看代码发现，这里 checksum 函数校验的是 TP i2c 回传的数据 buf，在手势模式下会去校验 buf 的格式是否满足手势键值的格式。若发现不符合手势数据 buf 格式，则会打印此 log  
 
 6. 约供应商一起分析此问题，复现问题的状态下，通过 proc/android_touch/register 节点查看 8F 状态寄存器  
    确认到 8F 寄存器的值为 0xA0，正常情况进入手势的话，8F 寄存器的值应该是 0x20
