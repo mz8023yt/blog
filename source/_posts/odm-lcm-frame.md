@@ -1015,6 +1015,254 @@ mdss_dsi_panel_power_ctrl
 
 ## 五. LCD 静电
 
+### 5.1 使能 esd check 功能
+
+屏 dtsi 中增加以下属性以开启 esd check 功能：
+
+    &mdss_mdp {
+        dsi_co55swr8_st7703_720p_video: qcom,dsi_co55swr8_st7703_720p_video {
+            ... ...
+            /* 使能 esd check 机制 */
+            qcom,esd-check-enabled;
+
+            /* 指定 esd check 的 command，cmd 最后一次字节是 check 的寄存器 */
+            qcom,mdss-dsi-panel-status-command = [
+                    14 01 00 01 05 00 01 68
+                    06 01 00 01 05 00 01 09
+                    14 01 00 01 05 00 01 CC
+                    14 01 00 01 05 00 01 AF
+            ];
+
+            /* 指定 esd check 的命令模式 */
+            qcom,mdss-dsi-panel-status-command-state = "dsi_lp_mode";
+
+            /* 指定 esd check 的校验模式 */
+            qcom,mdss-dsi-panel-status-check-mode = "reg_read";
+
+            /* 在 command 中指定指定过了 check 的寄存器，这里指定 check 对应寄存器的前几个字节 */
+            qcom,mdss-dsi-panel-status-read-length = <1 3 1 1>;
+
+            /* 这个属性的含义还在摸索中 */
+            qcom,mdss-dsi-panel-max-error-count = <2>;
+
+            /* 指定 esd check 读取的寄存器的的标准值 */
+            qcom,mdss-dsi-panel-status-value = <0xC0> , <0x80 0x73 0x04>, <0x0B>,<0xFD>;
+            ... ...
+        };
+    };
+
+### 5.2 追踪 esd check 流程
+
+在 mdss_dsi.c 文件中解析 dts 中屏节点中设置的 esd 相关属性，相关代码流程如下：
+
+    // file: src/kernel/msm-3.18/drivers/video/msm/mdss/mdss_dsi.c
+    static int mdss_dsi_ctrl_probe(struct platform_device *pdev)
+        mdss_dsi_config_panel(pdev, index);
+
+            /* 根据 panel_cfg 指定的 panel 找到对应的 dts 节点 */
+            mdss_dsi_find_panel_of_node(pdev, panel_cfg);
+
+            // file: src/kernel/msm-3.18/drivers/video/msm/mdss/mdss_dsi_panel.c
+            mdss_dsi_panel_init(dsi_pan_node, ctrl_pdata, ndx);
+                mdss_panel_parse_dt(node, ctrl_pdata);
+                    mdss_dsi_parse_panel_features(np, ctrl_pdata);
+
+                        /* 解析 dts 中 esd check 相关的参数 */
+                        mdss_dsi_parse_esd_params(np, ctrl);
+
+        dsi_panel_device_register(pdev, dsi_pan_node, ctrl_pdata);
+
+            /* 根据 status_mode 绑定对应的 esd check 的函数 */
+            if (ctrl_pdata->status_mode == ESD_REG)
+                ctrl_pdata->check_status = mdss_dsi_reg_status_check;
+
+    // file: src/kernel/msm-3.18/drivers/video/msm/mdss/mdss_dsi_status.c
+    module_init(mdss_dsi_status_init);
+        mdss_dsi_status_init
+            INIT_DELAYED_WORK(&pstatus_data->check_status, check_dsi_ctrl_status);
+                check_dsi_ctrl_status
+                    pdsi_status->mfd->mdp.check_dsi_status(work, interval);
+                    > mdss_check_dsi_ctrl_status
+                        ctrl_pdata->check_status(ctrl_pdata);
+                        > mdss_dsi_reg_status_check
+
+                            /* 读取寄存器状态 */
+                            mdss_dsi_read_status(ctrl_pdata);
+
+                            /* 校验寄存器状态 */
+                            ctrl_pdata->check_read_status(ctrl_pdata);
+                            > mdss_dsi_gen_read_status(ctrl_pdata);
+                                mdss_dsi_cmp_panel_reg_v2(ctrl_pdata);
+
+```c
+static void mdss_dsi_parse_esd_params(struct device_node *np, struct mdss_dsi_ctrl_pdata *ctrl)
+{
+    u32 tmp;
+    u32 i, status_len, *lenp;
+    int rc;
+    struct property *data;
+    const char *string;
+    struct mdss_panel_info *pinfo = &ctrl->panel_data.panel_info;
+
+    /* 获取 esd check 使能的标识位 */
+    pinfo->esd_check_enabled = of_property_read_bool(np, "qcom,esd-check-enabled");
+
+    /* 倘若未使能 esd check，此函数直接 return */
+    if (!pinfo->esd_check_enabled)
+        return;
+
+    ctrl->status_mode = ESD_MAX;
+
+    /* 获取 esd check 的 check mode */
+    rc = of_property_read_string(np, "qcom,mdss-dsi-panel-status-check-mode", &string);
+
+    /* 根据获取到的 check mode 设置好 ctrl->status_mode 为对应的宏 */
+    if (!rc) {
+        if (!strcmp(string, "bta_check")) {
+            ctrl->status_mode = ESD_BTA;
+        } else if (!strcmp(string, "reg_read")) {
+            ctrl->status_mode = ESD_REG;
+            ctrl->check_read_status = mdss_dsi_gen_read_status;
+        } else if (!strcmp(string, "reg_read_nt35596")) {
+            ctrl->status_mode = ESD_REG_NT35596;
+            ctrl->status_error_count = 0;
+            ctrl->check_read_status = mdss_dsi_nt35596_read_status;
+        } else if (!strcmp(string, "te_signal_check")) {
+            if (pinfo->mipi.mode == DSI_CMD_MODE) {
+                ctrl->status_mode = ESD_TE;
+            } else {
+                pr_err("TE-ESD not valid for video mode\n");
+                goto error;
+            }
+        } else {
+            pr_err("No valid panel-status-check-mode string\n");
+            goto error;
+        }
+    }
+
+    /* 对于 ESD_BTA、ESD_BTA、ESD_MAX 这几种 check mode 不需要获取其他的属性参数 */ 
+    if ((ctrl->status_mode == ESD_BTA) || (ctrl->status_mode == ESD_TE) || (ctrl->status_mode == ESD_MAX))
+        return;
+
+    /* 对于 ESD_REG 和 ESD_REG_NT35596 这两种 check 寄存器状态的模式，需要获取 check 哪些寄存器 */ 
+    mdss_dsi_parse_dcs_cmds(np, &ctrl->status_cmds, "qcom,mdss-dsi-panel-status-command", "qcom,mdss-dsi-panel-status-command-state");
+
+    rc = of_property_read_u32(np, "qcom,mdss-dsi-panel-max-error-count", &tmp);
+    ctrl->max_status_error_count = (!rc ? tmp : 0);
+
+    if (!mdss_dsi_parse_esd_status_len(np, "qcom,mdss-dsi-panel-status-read-length", &ctrl->status_cmds_rlen, ctrl->status_cmds.cmd_cnt)) {
+        pinfo->esd_check_enabled = false;
+        return;
+    }
+
+    if (mdss_dsi_parse_esd_status_len(np, "qcom,mdss-dsi-panel-status-valid-params", &ctrl->status_valid_params, ctrl->status_cmds.cmd_cnt)) {
+        if (!mdss_dsi_parse_esd_check_valid_params(ctrl))
+            goto error1;
+    }
+
+    status_len = 0;
+    lenp = ctrl->status_valid_params ?: ctrl->status_cmds_rlen;
+    for (i = 0; i < ctrl->status_cmds.cmd_cnt; ++i)
+        status_len += lenp[i];
+
+    data = of_find_property(np, "qcom,mdss-dsi-panel-status-value", &tmp);
+    tmp /= sizeof(u32);
+    if (!IS_ERR_OR_NULL(data) && tmp != 0 && (tmp % status_len) == 0) {
+        ctrl->groups = tmp / status_len;
+    } else {
+        pr_err("%s: Error parse panel-status-value\n", __func__);
+        goto error1;
+    }
+
+    ctrl->status_value = kzalloc(sizeof(u32) * status_len * ctrl->groups, GFP_KERNEL);
+    if (!ctrl->status_value)
+        goto error1;
+
+    ctrl->return_buf = kcalloc(status_len * ctrl->groups, sizeof(unsigned char), GFP_KERNEL);
+    if (!ctrl->return_buf)
+        goto error2;
+
+    rc = of_property_read_u32_array(np, "qcom,mdss-dsi-panel-status-value", ctrl->status_value, ctrl->groups * status_len);
+    if (rc) {
+        pr_debug("%s: Error reading panel status values\n", __func__);
+        memset(ctrl->status_value, 0, ctrl->groups * status_len);
+    }
+
+    return;
+
+error2:
+    kfree(ctrl->status_value);
+error1:
+    kfree(ctrl->status_valid_params);
+    kfree(ctrl->status_cmds_rlen);
+error:
+    pinfo->esd_check_enabled = false;
+}
+
+static int mdss_dsi_read_status(struct mdss_dsi_ctrl_pdata *ctrl)
+{
+    int i, rc, *lenp;
+    int start = 0;
+    struct dcs_cmd_req cmdreq;
+
+    rc = 1;
+    lenp = ctrl->status_valid_params ?: ctrl->status_cmds_rlen;
+
+    for (i = 0; i < ctrl->status_cmds.cmd_cnt; ++i) {
+        memset(&cmdreq, 0, sizeof(cmdreq));
+        cmdreq.cmds = ctrl->status_cmds.cmds + i;
+        cmdreq.cmds_cnt = 1;
+        cmdreq.flags = CMD_REQ_COMMIT | CMD_REQ_RX;
+        cmdreq.rlen = ctrl->status_cmds_rlen[i];
+        cmdreq.cb = NULL;
+        cmdreq.rbuf = ctrl->status_buf.data;
+
+        if (ctrl->status_cmds.link_state == DSI_LP_MODE)
+            cmdreq.flags |= CMD_REQ_LP_MODE;
+        else if (ctrl->status_cmds.link_state == DSI_HS_MODE)
+            cmdreq.flags |= CMD_REQ_HS_MODE;
+
+        rc = mdss_dsi_cmdlist_put(ctrl, &cmdreq);
+        if (rc <= 0) {
+            pr_err("%s: get status: fail\n", __func__);
+            return rc;
+        }
+
+        memcpy(ctrl->return_buf + start, ctrl->status_buf.data, lenp[i]);
+        start += lenp[i];
+    }
+
+    return rc;
+}
+
+static bool mdss_dsi_cmp_panel_reg_v2(struct mdss_dsi_ctrl_pdata *ctrl)
+{
+    int i, j;
+    int len = 0, *lenp;
+    int group = 0;
+
+    lenp = ctrl->status_valid_params ?: ctrl->status_cmds_rlen;
+    
+    for (i = 0; i < ctrl->status_cmds.cmd_cnt; i++)
+        len += lenp[i];
+
+    /* 这里比对寄存器中读取出来的值和 dts 中理论上寄存器中的值 */
+    for (j = 0; j < ctrl->groups; ++j)
+    {
+        for (i = 0; i < len; ++i)
+        {
+            printk("lcd esd return_buf[%d] = 0x%x  status_value = 0x%x %s %d\n", i, ctrl->return_buf[i], ctrl->status_value[group + i],  __func__, __LINE__);
+            if (ctrl->return_buf[i] != ctrl->status_value[group + i])
+                break;
+        }
+        if (i == len)
+            return true;
+        group += len;
+    }
+    return false;
+}
+```
+
 ## 六. LCD 框架
 
 ### 6.1 lk 阶段 lcd 框架分析
