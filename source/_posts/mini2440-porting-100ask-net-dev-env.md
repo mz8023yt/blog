@@ -77,7 +77,7 @@ categories: Mini2440
 修改 u-boot 的 Makefile 指定编译使用刚刚解压的交叉编译器，修改点如下：
 
     user@vmware:~/mini2440/gcc-3.4.5-glibc-2.3.6/bin$ cd ../../u-boot-1.1.6/
-    user@vmware:~/mini2440/u-boot-1.1.6$ vim Makefile 
+    user@vmware:~/mini2440/u-boot-1.1.6$ vim Makefile
     user@vmware:~/mini2440/u-boot-1.1.6$ git diff
     diff --git a/Makefile b/Makefile
     index a8fdbb1..f7ed826 100644
@@ -122,7 +122,7 @@ categories: Mini2440
     On branch master
     Untracked files:
       (use "git add <file>..." to include in what will be committed)
-    
+
     	examples/hello_world
     	examples/hello_world.bin
     	examples/hello_world.srec
@@ -143,7 +143,7 @@ categories: Mini2440
     	u-boot.bin
     	u-boot.map
     	u-boot.srec
-    
+
     nothing added to commit but untracked files present (use "git add" to track)
 
 将这些文件手动添加到 .gitignore 文件中，值得注意的是，内核默认的忽略规则会将 . 开头的隐藏文件一并忽略掉，这里需要强制指定不忽略 .gitignore 文件
@@ -152,7 +152,7 @@ categories: Mini2440
     user@vmware:~/mini2440/u-boot-1.1.6$ vim .gitignore
     user@vmware:~/mini2440/u-boot-1.1.6$ diff .gitignore ../linux-2.6.22.6/.gitignore
     5,29d4
-    < 
+    <
     < #
     < # maiot added rules
     < #
@@ -176,7 +176,7 @@ categories: Mini2440
     < u-boot.bin
     < u-boot.map
     < u-boot.srec
-    < 
+    <
     34,35d8
     < # don't ignore the .gitignore file
     < !.gitignore
@@ -187,9 +187,9 @@ categories: Mini2440
     On branch master
     Untracked files:
       (use "git add <file>..." to include in what will be committed)
-    
+
     	.gitignore
-    
+
     nothing added to commit but untracked files present (use "git add" to track)
 
 很好，提交忽略规则到版本库中
@@ -250,19 +250,19 @@ categories: Mini2440
 
 修改顶层 Makefile 指定编译使用刚刚解压的交叉编译器，修改点如下：
 
-    user@vmware:~/mini2440/linux-2.6.22.6$ vim Makefile 
+    user@vmware:~/mini2440/linux-2.6.22.6$ vim Makefile
     user@vmware:~/mini2440/linux-2.6.22.6$ git diff
     diff --git a/Makefile b/Makefile
     index 9b456d0..e98b548 100644
     --- a/Makefile
     +++ b/Makefile
     @@ -184,7 +184,7 @@ SUBARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ \
-     
+
      #ARCH          ?= $(SUBARCH)
      ARCH           ?= arm
     -CROSS_COMPILE  ?= arm-linux-
     +CROSS_COMPILE  ?= /home/user/mini2440/gcc-3.4.5-glibc-2.3.6/bin/arm-linux-
-     
+
      # Architecture as present in compile.h
      UTS_MACHINE := $(ARCH)
     user@vmware:~/mini2440/linux-2.6.22.6$ git add --all
@@ -296,22 +296,22 @@ categories: Mini2440
     @@ -415,7 +415,7 @@ ifeq ($(config-targets),1)
      include $(srctree)/arch/$(ARCH)/Makefile
      export KBUILD_DEFCONFIG
-     
+
     -config %config: scripts_basic outputmakefile FORCE
     +%config: scripts_basic outputmakefile FORCE
             $(Q)mkdir -p include/linux include/config
             $(Q)$(MAKE) $(build)=scripts/kconfig $@
-     
+
     @@ -1448,7 +1448,7 @@ endif
             $(Q)$(MAKE) $(build)=$(build-dir) $(target-dir)$(notdir $@)
-     
+
      # Modules
     -/ %/: prepare scripts FORCE
     +%/: prepare scripts FORCE
             $(Q)$(MAKE) KBUILD_MODULES=$(if $(CONFIG_MODULES),1) \
             $(build)=$(build-dir)
      %.ko: prepare scripts FORCE
-    user@vmware:~/mini2440/linux-2.6.22.6$ git add Makefile 
+    user@vmware:~/mini2440/linux-2.6.22.6$ git add Makefile
     user@vmware:~/mini2440/linux-2.6.22.6$ git commit -m "conf: fix new make tool can't compatible the old kernel"
 
 修改好后重新 make 试试
@@ -337,7 +337,7 @@ categories: Mini2440
     Load Address: 30008000
     Entry Point:  30008000
       Image arch/arm/boot/uImage is ready
-    user@vmware:~/mini2440/linux-2.6.22.6$ ls -l arch/arm/boot/uImage 
+    user@vmware:~/mini2440/linux-2.6.22.6$ ls -l arch/arm/boot/uImage
     -rw-rw-r-- 1 user user 1845932 5月  20 20:59 arch/arm/boot/uImage
 
 #### 2.4 修改 lcd 驱动
@@ -422,11 +422,15 @@ categories: Mini2440
 
 #### 2.6 提交忽略规则文件
 
-修改 .gitignore 文件，在 `.*` 后追加 `!.gitignore`，不忽略 .gitignore 文件。
+修改 .gitignore 文件，在 `.*` 后追加 `!.gitignore`，不忽略 .gitignore 文件，这样才可以将忽略规则一并提交到 github 仓库中。
 
     user@vmware:~/mini2440$ vim .gitignore
-     #
-     # Normal rules
+    user@vmware:~/mini2440$ git diff
+    diff --git a/.gitignore b/.gitignore
+    index a8b11d5..56b2db9 100644
+    --- a/.gitignore
+    +++ b/.gitignore
+    @@ -7,8 +7,10 @@
      #
      .*
     +
@@ -434,8 +438,30 @@ categories: Mini2440
     +!.gitignore
     +
      *.o
+     *.a
+    @@ -26,6 +28,12 @@
+     tags
+     TAGS
+     vmlinux*
+    +
+    +# don't ignore the vmlinux.lds.* file
+    +!vmlinux.lds.*
+    +
+     System.map
+     Module.symvers
+
     user@vmware:~/mini2440/linux-2.6.22.6$ git add --all
     user@vmware:~/mini2440/linux-2.6.22.6$ git commit -m "conf: add the git ignore files"
+
+备注：这里为什么要取消忽略 `!vmlinux.lds.*`，是因为我之前使用 kernel 默认的忽略规则，将版本库上传到 github 上，再下载下来 make 的时候，编译不过，发现找不到一些依赖文件，我才意识到可能是我的忽略规则存在问题，某些必须的文件的被忽略掉了，导致这些必要的文件没有提交到版本库中。  
+因此用解压打完 patch 未编译的源码和 github 上 clone 下来的源码做对比，发现少了下面这几个文件：
+
+1. arch/alpha/kernel/vmlinux.lds.S
+2. arch/arm/boot/compressed/vmlinux.lds.in
+3. arch/arm/kernel/vmlinux.lds.S
+4. include/asm-generic/vmlinux.lds.h
+
+因此确认到时 vmlinux* 忽略规则将这些文件忽略掉了，故添加 `!vmlinux.lds.*` 规则不忽略上述文件，保证版本可以编译通过。
 
 
 #### 2.7 备份源码到 github 方便下次使用
@@ -556,7 +582,7 @@ FORMAT: <ADDR(DATA):4>+<SIZE(n+10):4>+<DATA:n>+<CS:2>
 NOTE: Power off/on or press the reset button for 1 sec
       in order to get a valid USB device address.
 
-Hit any key to stop autoboot:  0 
+Hit any key to stop autoboot:  0
 
 ##### 100ask Bootloader for OpenJTAG #####
 [n] Download u-boot to Nand Flash
@@ -572,7 +598,7 @@ Hit any key to stop autoboot:  0
 [r] Reboot u-boot
 [q] Quit from menu
 Enter your selection: q
-OpenJTAG> 
+OpenJTAG>
 ```
 
 #### 3.3 下载 kernel 到 nandflash 上
@@ -624,6 +650,3 @@ u-boot 成功烧写后，便可以使用 u-boot 的 tftp 命令可以下载文�
     OpenJTAG> nand write.yaffs 30000000 260000 2f76b40
 
 上面烧写命令的含义其实就是，将 SDRAM 中 0x30000000 地址开始连续 0x2f76b40(49769280) 个字节写入 nandflash 0x260000 地址中去。不难发现其实 2f76b40 这个值就是 fs_qtopia.yaffs2 文件的大小。
-
-
-
