@@ -461,8 +461,7 @@ categories: Mini2440
 3. arch/arm/kernel/vmlinux.lds.S
 4. include/asm-generic/vmlinux.lds.h
 
-因此确认到时 vmlinux* 忽略规则将这些文件忽略掉了，故添加 `!vmlinux.lds.*` 规则不忽略上述文件，保证版本可以编译通过。
-
+因此确认到是 `vmlinux*` 忽略规则将这些文件忽略掉了，故添加 `!vmlinux.lds.*` 规则不忽略上述文件，保证版本可以编译通过。
 
 #### 2.7 备份源码到 github 方便下次使用
 
