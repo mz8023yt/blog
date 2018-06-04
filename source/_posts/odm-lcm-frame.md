@@ -264,62 +264,61 @@ APP_START(aboot)
 APP_END
 
 void aboot_init(const struct app_descriptor *app)
-        |-- target_display_init(device.display_panel);
-                |
-                |-- do {
-                |       |   // (1) 依次遍历代码中的兼容的 lcd 驱动做初始化操作
-                |       |-- memcpy(oem.panel, (panel_name_my + panel_loop), 64);
-                |       |-- gcdb_display_init(oem.panel, MDP_REV_50, (void *)MIPI_FB_ADDR);
-                |       |       |-- panel_name = oem.panel;
-                |       |       |-- oem_panel_select(panel_name, &panelstruct, &(panel.panel_info), &dsi_video_mode_phy_db);
-                |       |       |       |
-                |       |       |       |   // (2) 根据 panel_name 解析 supp_panels 数组，得到 panel 的编号
-                |       |       |       |-- panel_override_id = panel_name_to_id(supp_panels, ARRAY_SIZE(supp_panels), panel_name);
-                |       |       |       |-- panel_id = panel_override_id;
-                |       |       |       |-- init_panel_data(panelstruct, pinfo, phy_db);
-                |       |       |               |
-                |       |       |               |   // (3) 根据解析出来 panel 编号，绑定对应的 lcd 驱动函数
-                |       |       |               |-- switch (panel_id) {
-                |       |       |               |       case ST7703_HSD_PANEL:
-                |       |       |               |               ... ...
-                |       |       |               |       case ST7703_BOE_PANEL:
-                |       |       |               |               ... ...
-                |       |       |               |       case HX83102B_HSD_PANEL:
-                |       |       |               |               ... ...
-                |       |       |               |               panelstruct->paneldata = &HX83102_B_720p_hsd_video_panel_data;
-                |       |       |               |               pinfo->mipi.panel_compare_id_read_cmds = HX83102_B_720p_video_compare_id_page_command;
-                |       |       |               |               pinfo->mipi.panel_compare_id_page_cmds = HX83102_B_720p_video_compare_id_read_command;
-                |       |       |               |               pinfo->mipi.compare_id = HX83102_B_720P_VIDEO_COMPARE_ID;
-                |       |       |               |               pinfo->mipi.signature = HX83102_B_720P_HSD_VIDEO_SIGNATURE;
-                |       |       |               |               ... ...
-                |       |       |               |               break;
-                |       |       |               |-- }
-                |       |       |
-                |       |       |-- msm_display_init(&panel);
-                |       |               |-- msm_display_config();
-                |       |                       |-- mdss_dsi_config(panel);
-                |       |                               |-- mdss_dsi_panel_initialize(mipi, mipi->broadcast);
-                |       |                                       |-- mdss_dsi_read_panel_signature(mipi);
-                |       |                                               |
-                |       |                                               |   // (4) 使用绑定的 lcd 驱动函数读取手机实际接的 lcd 的 id
-                |       |                                               |-- chip_id = oem_panel_compare_chip_id(mipi);
-                |       |                                               |       |-- mdss_dsi_cmds_tx(mipi, mipi->panel_compare_id_page_cmds, 1, 0);
-                |       |                                               |       |-- mdss_dsi_cmds_tx(mipi, mipi->panel_compare_id_read_cmds, 1, 0);
-                |       |                                               |       |-- mdss_dsi_cmds_rx(mipi, &lp, 1, 1);
-                |       |                                               |       |-- return (ntohl(*lp) >> 16) & 0xFF;
-                |       |                                               |
-                |       |                                               |   // (5) 将读取到的 id 和当前的驱动对应的 id 做比对，匹配返回 0，不匹配返回 1
-                |       |                                               |-- if(chip == mipi->compare_id)
-                |       |                                               |       return 0;
-                |       |                                               |-- else
-                |       |                                                       return 1;
-                |       |
-                |       |   // (1) 如果 id 匹配成功(ret = 0)或者所有屏驱动都遍历了，但没有一块屏匹配，则跳出循环，不再遍历
-                |       |-- if (!ret || ret == ERR_NOT_SUPPORTED)
-		|               break;
-                |
-                |   // (1) 如果没有走到上面 break 的位置，则接着遍历下一个兼容的 lcd 驱动
-                |-- } while (++panel_loop <= oem_panel_max_auto_detect_panels());
+    |- target_display_init(device.display_panel);
+        |
+        |- do {
+        |   |  // (1) 依次遍历代码中的兼容的 lcd 驱动做初始化操作
+        |   |- memcpy(oem.panel, (panel_name_my + panel_loop), 64);
+        |   |- gcdb_display_init(oem.panel, MDP_REV_50, (void *)MIPI_FB_ADDR);
+        |   |   |- panel_name = oem.panel;
+        |   |   |- oem_panel_select(panel_name, &panelstruct, &(panel.panel_info), &dsi_video_mode_phy_db);
+        |   |   |   |
+        |   |   |   |  // (2) 根据 panel_name 解析 supp_panels 数组，得到 panel 的编号
+        |   |   |   |- panel_override_id = panel_name_to_id(supp_panels, ARRAY_SIZE(supp_panels), panel_name);
+        |   |   |   |- panel_id = panel_override_id;
+        |   |   |   |- init_panel_data(panelstruct, pinfo, phy_db);
+        |   |   |       |
+        |   |   |       |  // (3) 根据解析出来 panel 编号，绑定对应的 lcd 驱动函数
+        |   |   |       |- switch (panel_id) {
+        |   |   |       |   case ST7703_HSD_PANEL:
+        |   |   |       |       ... ...
+        |   |   |       |   case ST7703_BOE_PANEL:
+        |   |   |       |       ... ...
+        |   |   |       |   case HX83102B_HSD_PANEL:
+        |   |   |       |       ... ...
+        |   |   |       |       pinfo->mipi.panel_compare_id_read_cmds = HX83102_compare_id_page_command;
+        |   |   |       |       pinfo->mipi.panel_compare_id_page_cmds = HX83102_compare_id_read_command;
+        |   |   |       |       pinfo->mipi.compare_id = HX83102_COMPARE_ID;
+        |   |   |       |       pinfo->mipi.signature = HX83102_SIGNATURE;
+        |   |   |       |       ... ...
+        |   |   |       |       break;
+        |   |   |       |- }
+        |   |   |
+        |   |   |- msm_display_init(&panel);
+        |   |           |- msm_display_config();
+        |   |               |- mdss_dsi_config(panel);
+        |   |                   |- mdss_dsi_panel_initialize(mipi, mipi->broadcast);
+        |   |                       |- mdss_dsi_read_panel_signature(mipi);
+        |   |                           |
+        |   |                           |  // (4) 使用绑定的 lcd 驱动函数读取手机实际接的 lcd 的 id
+        |   |                           |- chip_id = oem_panel_compare_chip_id(mipi);
+        |   |                           |       |- mdss_dsi_cmds_tx(mipi, mipi->panel_compare_id_page_cmds, 1, 0);
+        |   |                           |       |- mdss_dsi_cmds_tx(mipi, mipi->panel_compare_id_read_cmds, 1, 0);
+        |   |                           |       |- mdss_dsi_cmds_rx(mipi, &lp, 1, 1);
+        |   |                           |       |- return (ntohl(*lp) >> 16) & 0xFF;
+        |   |                           |
+        |   |                           |  // (5) 将读取到的 id 和当前的驱动对应的 id 做比对，匹配返回 0，不匹配返回 1
+        |   |                           |- if(chip_id == mipi->compare_id)
+        |   |                           |   return 1;
+        |   |                           |- else
+        |   |                               return 0;
+        |   |
+        |   |  // (1) 如果 id 匹配成功(ret = 0)或者所有屏驱动都遍历了，但没有一块屏匹配，则跳出循环，不再遍历
+        |   |- if (!ret || ret == ERR_NOT_SUPPORTED)
+        |       break;
+        |
+        |  // (1) 如果没有走到上面 break 的位置，则接着遍历下一个兼容的 lcd 驱动
+        |- } while (++panel_loop <= oem_panel_max_auto_detect_panels());
 ```
 
 上面贴出来的框图仅仅是将 lcd 兼容函数调用关系贴出来了，一些地方描述不是很详细，下面介绍一下上图中做有标号的地方。
@@ -359,8 +358,8 @@ void target_display_init(const char *panel_name) {
 
         // 如果没有走到上面 break 的位置，则接着遍历下一个兼容的 lcd 驱动
         // 循环的次数为代码中兼容的屏的个数
-	} while (++panel_loop <= oem_panel_max_auto_detect_panels());
-	... ...
+        } while (++panel_loop <= oem_panel_max_auto_detect_panels());
+        ... ...
 }
 
 
@@ -500,7 +499,7 @@ static int init_panel_data(struct panel_struct *panelstruct, struct msm_panel_in
                 memset(phy_db->timing, 0, TIMING_SIZE);
                 pan_type = PANEL_TYPE_UNKNOWN;
                 break;
-	}
+        }
 
         return pan_type;
 }
