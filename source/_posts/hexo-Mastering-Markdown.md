@@ -13,8 +13,22 @@ categories: Hexo
 
 ### 前言
 
-Markdown 可以写一些轻量级格式的文档，并且它使用纯文本的方式就可以描述出来。使用纯文本的方式相对于复杂的 word 文档就带来一个非常大的优势，那就是可以很方便的使用的版本控制工具去管理。  
+Markdown 可以写一些轻量级格式的文档，并且它使用纯文本的方式就可以描述出来。使用纯文本的方式相对于复杂的 word 文档就带来一个非常大的优势，那就是可以很方便的使用版本控制工具去管理。  
 本文不会详细的去介绍 Markdown 的详细语法，详细的语法，上面有给出 GitHub 的使用手册，这里仅仅介绍一些常用的语法。
+
+### 超链接
+
+    使用 [链接文字描述](超链接) 的方式可以很容易的添加超链接：
+    [link to Google](http://google.com)
+
+[link to Google](http://google.com)
+
+### 图片
+
+    使用 ![图片描述](图片链接) 的方式可以很容易的添加图片，这个图片也可以是 gif 动态图：
+    eg. ![adb input command demo](https://raw.githubusercontent.com/mz8023yt/blog.material/master/odm/gif/odm-tp-input-cmd.gif)
+
+![adb input command demo](https://raw.githubusercontent.com/mz8023yt/blog.material/master/odm/gif/odm-tp-input-cmd.gif)
 
 ### 内嵌代码块
 
