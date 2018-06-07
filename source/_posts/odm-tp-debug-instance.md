@@ -15,7 +15,7 @@ TP 这块出现问题，条件允许的话，一定要第一时间拿到不良�
     dmesg -w | grep -E <keyword>
     logcat -b kernel | grep -E <keyword>
 
-实时打印 kernel log 可以通过下面几条命令：
+实时打印 main log 可以通过下面命令：
 
     logcat | grep -E <keyword>
 

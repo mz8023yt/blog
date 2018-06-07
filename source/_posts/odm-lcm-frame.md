@@ -1044,7 +1044,7 @@ mdss_dsi_panel_power_ctrl
             /* 这个属性的含义还在摸索中 */
             qcom,mdss-dsi-panel-max-error-count = <2>;
 
-            /* 指定 esd check 读取的寄存器的的标准值 */
+            /* 指定 esd check 读取的寄存器的标准值 */
             qcom,mdss-dsi-panel-status-value = <0xC0> , <0x80 0x73 0x04>, <0x0B>,<0xFD>;
             ... ...
         };
