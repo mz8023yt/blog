@@ -33,7 +33,7 @@ Markdown 可以写一些轻量级格式的文档，并且它使用纯文本的�
 ### 内嵌代码块
 
         在句子中使用 `<code block>` 在句子中嵌入代码块：
-        eg. 使用 printk 在 kernel 中打印调试信息。
+        eg. 使用 `printk` 在 kernel 中打印调试信息。
 
 使用 `printk` 在 kernel 中打印调试信息。
 
