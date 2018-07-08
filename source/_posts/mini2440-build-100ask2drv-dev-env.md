@@ -619,6 +619,14 @@ u-boot 成功烧写后，便可以使用 u-boot 的 tftp 命令可以下载文�
        OpenJTAG> save
        OpenJTAG> reset
 
+   使用小米路由器的话请使用下面的命令进行配置，需要多配置网关 ip 这一项：
+
+       OpenJTAG> setenv ipaddr 192.168.31.230
+       OpenJTAG> setenv serverip 192.168.31.43
+       OpenJTAG> setenv gatewayip 192.168.31.1
+       OpenJTAG> save
+       OpenJTAG> reset
+
 2. 重启 U-Boot 之后使用 tftp 命令将 tftp 服务器中的文件下载到 SDRAM 0x30000000 地址处  
 
        OpenJTAG> tftp 30000000 uImage
