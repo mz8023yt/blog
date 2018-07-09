@@ -4,9 +4,8 @@ date: 2018-03-26 22:37:18
 tags:
   - eMMC
   - sys
-categories: ODM
+categories: Experience
 ---
-
 
 ### 问题描述
 

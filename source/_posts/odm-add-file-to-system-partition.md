@@ -5,7 +5,7 @@ tags:
   - shell
   - system
   - mtk
-categories: ODM
+categories: Experience
 ---
 
 ### 问题来源

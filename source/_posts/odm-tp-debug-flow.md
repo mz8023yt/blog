@@ -4,7 +4,7 @@ date: 2018-04-11 14:00:43
 tags:
   - touch
   - qcom
-categories: ODM
+categories: Experience
 ---
 
 ## 一 常见问题

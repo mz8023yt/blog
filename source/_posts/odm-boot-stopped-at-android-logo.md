@@ -5,7 +5,7 @@ tags:
   - boot
   - system
   - mtk
-categories: ODM
+categories: Experience
 ---
 
 ### 问题描述

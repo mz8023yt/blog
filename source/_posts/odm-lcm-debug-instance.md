@@ -4,7 +4,7 @@ date: 2018-06-05 13:08:56
 tags:
   - lcm
   - qcom
-categories: ODM
+categories: Experience
 ---
 
 ### 实例1：闪屏问题

@@ -5,7 +5,7 @@ tags:
   - modem
   - AT
   - mtk
-categories: ODM
+categories: Experience
 ---
 
 ### 问题描述

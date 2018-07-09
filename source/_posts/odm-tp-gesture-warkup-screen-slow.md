@@ -5,7 +5,7 @@ tags:
   - touch
   - gesture
   - qcom
-categories: ODM
+categories: Experience
 ---
 
 ### 问题描述

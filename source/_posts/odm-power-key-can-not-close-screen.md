@@ -4,7 +4,7 @@ date: 2018-03-18 11:58:34
 tags:
   - otg
   - mtk
-categories: ODM
+categories: Experience
 ---
 
 ### 问题描述

@@ -7,13 +7,6 @@ tags:
 categories: Mini2440
 ---
 
-### 参考博客
-
-<https://blog.csdn.net/g1036583997/article/details/44492759>
-
-    mount -t nfs 192.168.31.66:/home/user/board /mnt -o nolock -otcp
-    mount -t nfs -o intr,nolock,tcp,rsize=1024,wsize=1024 192.168.31.66:/home/user/board /mnt
-
 ### 操作环境
 
 win7 电脑上装有 vmware 虚拟机，虚拟机中运行 ubuntu 16.04LTS 系统，ubuntu 启动 nfs 服务供开发板挂载网络文件系统，以便和 ubuntu 进行文件传输。  
@@ -135,3 +128,12 @@ ping 一下服务器，能 ping 通，说明局域网配置没有问题
 ### 参考博客
 
 <https://blog.csdn.net/g1036583997/article/details/44492759>
+
+使用友善之臂提供的内核的话，则需要用下面这条命令。
+
+    mount -t nfs 192.168.31.66:/home/user/board /mnt -o nolock -otcp
+
+使用百问科技提供的内核的话，用这条命令可以正常访问 nfs 网络文件系统。
+
+    mount -t nfs -o intr,nolock,tcp,rsize=1024,wsize=1024 192.168.31.66:/home/user/board /mnt
+    

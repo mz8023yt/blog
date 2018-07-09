@@ -3,7 +3,7 @@ title: '[ODM] 新增 PhoneInfoTest 命令'
 date: 2018-04-28 10:29:18
 tags:
   - qcom
-categories: ODM
+categories: Experience
 ---
 
 ### 问题来源

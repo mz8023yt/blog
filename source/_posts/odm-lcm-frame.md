@@ -4,7 +4,7 @@ date: 2018-04-11 17:11:23
 tags:
   - lcd
   - qcom
-categories: ODM
+categories: Experience
 ---
 
 ## 一. LCD 兼容
