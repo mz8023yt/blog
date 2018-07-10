@@ -41,7 +41,7 @@ ubuntu 主机的问题很好处理，使用 vmware 创建一个虚拟机，并�
 #### 第二步：使用 VMware(或Virtual Box)安装ubuntu
 
 参考光盘中的《Linux虚拟机安装手册.docx》文档，安装光盘中提供的虚拟机，此虚拟机中已经配置好了开发环境，当然包括 QEMU 了。  
-先尝试使用 VMware 14 安装虚拟机，安装后 ubuntu 开机会 panic，进不了系统。因此从新使用光盘中提供的 Virtual Box 成功安装。至于 VMware 7.0 没有尝试，谁有兴趣可以试试，并帮忙补全下。
+先尝试使用 VMware 14 安装虚拟机，安装后 ubuntu 开机会 panic，进不了系统。因此重新使用光盘中提供的 Virtual Box 成功安装。至于 VMware 7.0 没有尝试，谁有兴趣可以试试，并帮忙补全下。
 
 安装好 ubuntu 后，虚拟机账户密码都是 baohua，账户：baohua，密码：baohua。  
 为了在 Virtual Box 和 windows 之间方便拷贝，需要设置共享粘贴板：设备 -> 共享粘贴板 -> 双向。
@@ -154,7 +154,7 @@ clean:
 	@echo ">>>>>> make clean successful <<<<<<"
 ```
 
-这两个文件都放在 `/home/baohua/develop/wangbing` 目录下，可是编译一下，居然报错，很是尴尬，看看宝华提供的编译 modules 的脚本 `module.sh` 是怎么编译模块的
+这两个文件都放在 `/home/baohua/develop/wangbing` 目录下，可是编译一下，居然报错，很是尴尬，看看宝华提供的编译模块的脚本 `module.sh` 是怎么编译模块的：
 
 ```
 baohua@baohua-VirtualBox:~/develop/wangbing$ cat ../linux/module.sh 
@@ -164,7 +164,7 @@ sudo make ARCH=arm modules_install INSTALL_MOD_PATH=extra/img
 sudo umount extra/img
 ```
 
-将 arch 和 cross 加上试试，修改 Make 后：
+将 arch 和 cross_complie 加上试试，修改后的 Makefile 如下：
 
 ```
 obj-m += module.o
@@ -180,22 +180,22 @@ clean:
 	@echo ">>>>>> make clean successful <<<<<<"
 ```
 
-加上后果然成功编译出 module.ko 模块，再看看怎么拷贝到开发板上，同样参考宝华提供的 `module.sh` 脚本。配套书籍上有这么一句话：
+加上后果然成功编译出 module.ko 模块，再看看怎么拷贝到开发板上，同样参考宝华提供的 `module.sh` 脚本。同时看到配套书籍上有这么一句话：
 
 > extra 目录下的 vexpress.img 是一张虚拟 SD 卡，将作为根文件系统的存放介质。它能以 loop 的形式被挂载，如执行: `sudo mount -o loop,offset=1048576 $(KERNEL)/extra/vexpress.img $(KERNEL)/extra/img` 就可以将  vexpress.img 挂载到 `$(KERNEL)/extra/img` 位置。
 
 因此，尝试一下，这么干：
 
 ```
-sudo mount -o loop,offset=1048576 /home/baohua/develop/linux/extra/vexpress.img /home/baohua/develop/linux/extra/img
+baohua@baohua-VirtualBox:~/develop/wangbing$ sudo mount -o loop,offset=1048576 /home/baohua/develop/linux/extra/vexpress.img /home/baohua/develop/linux/extra/img
 baohua@baohua-VirtualBox:~/develop/wangbing$ sudo cp module.ko /home/baohua/develop/linux/extra/img/
 ```
 
-看了一眼 QEMU，不行呀，没有 module.ko 文件。重启一下试试，重启之后果然有了(如果没有就再重启一下)。
+看了一眼 QEMU，不行呀，没有 module.ko 文件。重启一下试试，重启之后果然有了(如果没有就再重启一下，我猜是文件同步需要一点时间)。
 
 ![image.png](https://upload-images.jianshu.io/upload_images/11006334-415a41942f17596e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-至此，我们已经搭建好了基于 Virtual Box 和 QEMU 的开发环境。
+模块已经拷贝到了 Qemu 上，并成功装载。至此，我们已经搭建好了基于 Virtual Box 和 QEMU 的开发环境。
 
 ### 备注
 
