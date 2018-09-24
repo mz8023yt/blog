@@ -199,7 +199,7 @@ sd 卡接入后
 
 #### 1.8 用 sd 卡启动验证是否烧录成功
 
-出现如下打印，说明编译烧写成功，如不成功，请仔细 check 上述每一个步骤
+将 SD 卡插入板子中，使用 SD 卡启动，出现如下打印，说明编译烧写成功，如不成功，请仔细 check 上述每一个步骤
 
     OK
 
@@ -233,5 +233,224 @@ sd 卡接入后
     TINY4412 # 
     TINY4412 # 
 
+### 二 配置编译烧写 linux 内核
 
+#### 2.1 获取 linux 源码
+
+linux 源码可以在 Tiny4412 附赠的光盘中获取，没有光盘的小伙伴可以访问我的 github 仓库获取。
+
+    user@vmware:~/tiny4412$ git clone git@github.com:tiny4412/FriendlyARM.source.code.git
+
+这里我是直接从光盘中拷贝的，放在 ~/tiny4412 目录下。
+
+    user@vmware:~/tiny4412$ ls
+    FriendlyARM.source.code  FriendlyARM.tool.chain  FriendlyARM.uboot-2010.12  linux-3.5-20150929.tgz  opt
+
+#### 2.2 创建仓库管理 linux 源码
+
+在 github 上创建一个名为 `FriendlyARM.linux-3.5` 的空仓库，克隆到本地
+
+    user@vmware:~/tiny4412$ git clone git@github.com:tiny4412/FriendlyARM.linux-3.5.git
+    Cloning into 'FriendlyARM.linux-3.5'...
+    warning: You appear to have cloned an empty repository.
+    Checking connectivity... done.
+
+解压 linux 源码，并将源码移动到仓库目录中进行管理
+
+    user@vmware:~/tiny4412$ tar zxf linux-3.5-20150929.tgz 
+    user@vmware:~/tiny4412$ mv linux-3.5/* FriendlyARM.linux-3.5/
+
+提交第一笔提交，记录最原始的 linux 源码状态
+
+    user@vmware:~/tiny4412$ cd FriendlyARM.linux-3.5/
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ make clean
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ make distclean
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git add --all
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git commit -m "init: get the linux source code by friendly arm"
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git push origin -u master
+
+#### 2.3 指定 linux 使用的交叉编译器
+
+通过修改顶层 Makefile 指定交叉编译器
+
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git diff
+    diff --git a/Makefile b/Makefile
+    old mode 100644
+    new mode 100755
+    index 371e0e4..053f911
+    --- a/Makefile
+    +++ b/Makefile
+    @@ -194,7 +194,7 @@ SUBARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ \
+     export KBUILD_BUILDHOST := $(SUBARCH)
+     #ARCH          ?= $(SUBARCH)
+     ARCH           ?= arm
+    -CROSS_COMPILE  ?= $(CONFIG_CROSS_COMPILE:"%"=%)
+    +CROSS_COMPILE  ?= /home/user/tiny4412/opt/FriendlyARM/toolschain/4.5.1/bin/arm-linux-
+     
+     # Architecture as present in compile.h
+     UTS_MACHINE    := $(ARCH)
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git add --all
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git commit -m "conf: modify the cross compiler"
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git push origin
+
+#### 2.4 配置内核
+
+修改友善之臂官网提供的配置文件，关闭 trustzone 功能
+
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git diff
+    diff --git a/tiny4412_linux_defconfig b/tiny4412_linux_defconfig
+    old mode 100644
+    new mode 100755
+    index 8da9719..c2b29bd
+    --- a/tiny4412_linux_defconfig
+    +++ b/tiny4412_linux_defconfig
+    @@ -482,7 +482,7 @@ CONFIG_CPU_CP15_MMU=y
+     #
+     # Processor Features
+     #
+    -CONFIG_ARM_TRUSTZONE=y
+    +# CONFIG_ARM_TRUSTZONE is not set
+     # CONFIG_ARM_LPAE is not set
+     # CONFIG_ARCH_PHYS_ADDR_T_64BIT is not set
+     CONFIG_ARM_THUMB=y
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git add --all
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git commit -m "conf: disable the trustzone"
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git push origin
+
+使用友善之臂提供的配置文件来配置内核
+
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ cp tiny4412_linux_defconfig .config
+
+#### 2.5 编译内核
+
+内核配置好后，直接执行 make 开始编译即可
+
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ make
+    ... ...
+      TIMEC   kernel/timeconst.h
+    Can't use 'defined(@array)' (Maybe you should just omit the defined()?) at kernel/timeconst.pl line 373.
+    /home/user/tiny4412/FriendlyARM.linux-3.5/kernel/Makefile:133: recipe for target 'kernel/timeconst.h' failed
+    make[1]: *** [kernel/timeconst.h] Error 255
+    Makefile:776: recipe for target 'kernel' failed
+    make: *** [kernel] Error 2
+
+报错了，不慌，百度了解到需要做如下修改
+
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git add kernel/timeconst.pl
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git diff --cached 
+    diff --git a/kernel/timeconst.pl b/kernel/timeconst.pl
+    old mode 100644
+    new mode 100755
+    index eb51d76..0461239
+    --- a/kernel/timeconst.pl
+    +++ b/kernel/timeconst.pl
+    @@ -370,7 +370,7 @@ if ($hz eq '--can') {
+            }
+     
+            @val = @{$canned_values{$hz}};
+    -       if (!defined(@val)) {
+    +       if (!@val) {
+                    @val = compute_values($hz);
+            }
+            output($hz, @val);user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git diff --cached 
+    diff --git a/kernel/timeconst.pl b/kernel/timeconst.pl
+    old mode 100644
+    new mode 100755
+    index eb51d76..0461239
+    --- a/kernel/timeconst.pl
+    +++ b/kernel/timeconst.pl
+    @@ -370,7 +370,7 @@ if ($hz eq '--can') {
+            }
+     
+            @val = @{$canned_values{$hz}};
+    -       if (!defined(@val)) {
+    +       if (!@val) {
+                    @val = compute_values($hz);
+            }
+            output($hz, @val);
+
+修改好后重新 make 成功了，确认到成功生成内核镜像
+
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ ls -l arch/arm/boot/zImage 
+    -rwxrwxr-x 1 user user 4783472 9月  24 16:32 arch/arm/boot/zImage
+
+#### 2.6 给 linux 添加 .gitignore 文件
+
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ cp ../FriendlyARM.uboot-2010.12/.gitignore ./
+
+同样，参考 uboot 中修改 ignore 规则一样，还是有部分中间文件没有被忽略。因此将剩余的中间文件都追加到 .gitignore 文件中。并将忽略规则提交
+
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git add --all
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git commit -m "conf: add the gitignore rule"
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git push origin 
+
+#### 2.7 烧写内核
+
+通过 dd 命令将内核烧写到 SD 卡中，dd 使用格式为：
+
+    dd iflag=dsync oflag=dsync if=<烧写的文件名称> of=<指定烧写的设备> seek=<跳过块数量>
+
+UBOOT默认情况下是从SD卡的1057块开始读取内核映像。  
+位置可以随意写，但是不能将前面的UBOOT代码覆盖掉。
+
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ sudo dd iflag=dsync oflag=dsync if=arch/arm/boot/zImage of=/dev/sdb seek=1057
+    [sudo] password for user: 
+    9342+1 records in
+    9342+1 records out
+    4783472 bytes (4.8 MB, 4.6 MiB) copied, 42.1633 s, 113 kB/s
+
+#### 2.8 用 sd 卡启动验证是否烧录成功
+
+将 SD 卡插入板子中，使用 SD 卡启动，出现如下打印，说明编译烧写成功，如不成功，请仔细 check 上述每一个步骤
+
+    OK
+
+    U-Boot 2010.12-00000-gbf8103b-dirty (Sep 24 2018 - 09:19:16) for TINY4412
+
+
+    CPU:	S5PC220 [Samsung SOC on SMP Platform Base on ARM CortexA9]
+        APLL = 1400MHz, MPLL = 800MHz
+
+    Board:	TINY4412
+    DRAM:	1023 MiB
+
+    vdd_arm: 1.2
+    vdd_int: 1.0
+    vdd_mif: 1.1
+
+    BL1 version:  N/A (TrustZone Enabled BSP)
+
+
+    Checking Boot Mode ... SDMMC
+    REVISION: 1.1
+    MMC Device 0: 7460 MB
+    MMC Device 1: 3728 MB
+    MMC Device 2: N/A
+    *** Warning - using default environment
+
+    Net:	No ethernet found.
+    Hit any key to stop autoboot:  0 
+    reading kernel..device 0 Start 1057, Count 12288 
+    MMC read: dev # 0, block # 1057, count 12288 ... 12288 blocks read: OK
+    completed
+    reading RFS..device 0 Count 13345, Start 2048 
+    MMC read: dev # 0, block # 13345, count 2048 ... 2048 blocks read: OK
+    completed
+    Boot with zImage
+    Wrong Ramdisk Image Format
+    [err] boot_get_ramdisk
+
+    Starting kernel ...
+
+    Uncompressing Linux... done, booting the kernel.
+    [    0.000000] Booting Linux on physical CPU 0
+    [    0.000000] Initializing cgroup subsys cpu
+    [    0.000000] Linux version 3.5.0-FriendlyARM-gd4bb223-dirty (user@vmware) (gcc version 4.5.1 (ctng-1.8.1-FA) ) #1 SMP PREEMPT Mon Sep 24 16:31:49 CST 2018
+
+如果此时接了屏幕的话，还可以看到屏幕上出现企鹅图标。
+
+### 三 将 uboot 和内核从 SD 卡中拷贝到 EMMC 中
+
+注意：SD 中有第 0 块不可用，EMMC 第 0 块是可用的，因此从 SD 到 EMMC 中烧的任何代码都需要减去 1
+SD 卡是从第一个块开始的， EMMC 是从第0个块开始的
 
