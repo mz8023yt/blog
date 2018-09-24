@@ -8,7 +8,7 @@ tags:
 categories: Tiny4412
 ---
 
-### uboot 命令介绍
+### 一 uboot 命令介绍
 
 Tiny 4412 开机倒数3秒计时的时候，按下 enter 键将进入 uboot 终端。  
 输入 `?` 或者 `help` 可以查看 uboot 支持的所有命令
