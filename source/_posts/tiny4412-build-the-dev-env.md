@@ -1,5 +1,5 @@
 ---
-title: '[Tiny4412] 搭建 Linux 开发环境'
+title: '[Tiny4412] 搭建 Linux3.5 开发环境'
 date: 2018-09-23 22:52:49
 tags:
   - tiny4412
@@ -85,12 +85,12 @@ uboot 源码和交叉工具链可以在 Tiny4412 附赠的光盘中获取，没�
 
 #### 1.5 配置编译 uboot
 
-配置
+配置 uboot
 
     user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12$ make tiny4412_config
     Configuring for tiny4412 board...
 
-编译
+编译 uboot
 
     user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12$ make
 
@@ -101,9 +101,9 @@ uboot 源码和交叉工具链可以在 Tiny4412 附赠的光盘中获取，没�
 
 #### 1.6 给 u-boot 添加 .gitignore 文件
 
-查看发现全是编译的中间文件，这些文件根本不需使用版本库进行管理，因此我们要忽略它们。随便找一个 kernel 源码中拷贝一个
+查看发现全是编译的中间文件，这些文件根本不需使用版本库进行管理，因此我们要忽略它们。随便找一个 kernel 源码中拷贝一个 kernel 默认的忽略规则过来就好。这里我拷贝的是 mini2440 用到的 linux-2.6.22.6 中的忽略规则。
 
-user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12$ cp ../../mini2440/linux-2.6.22.6/.gitignore ./
+    user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12$ cp ../../mini2440/linux-2.6.22.6/.gitignore ./
 
 将 kernel 默认的忽略文件拷贝到 u-boot 源码中，很好，大部分的中间文件都成功忽略了，但是通过 git st 查看还是有部分中间文件没有被忽略。因此将剩余的中间文件都追加到 .gitignore 文件中。  
 需要追加的列表有：
@@ -164,22 +164,11 @@ sd 卡接入后
     user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12/sd_fuse$ ls
     Makefile  mkbl2  sd_fdisk  sd_fdisk.c  tiny4412  V310-EVT1-mkbl2.c
 
-执行烧写脚本烧写 uboot，使用方法为 `./fast_fuse.sh /dev/sdb`
+执行烧写脚本烧写 uboot，使用方法为 `./fast_fuse.sh /dev/sdb`，值得注意的是，需要加 `sudo` 添超级权限才可以读写 sdb。
 
     user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12/sd_fuse$ cd tiny4412/
     user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12/sd_fuse/tiny4412$ ls
     E4412_N.bl1.bin  E4412_tzsw.bin  fast_fuse.sh  sd_fusing.sh
-    user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12/sd_fuse/tiny4412$ ./fast_fuse.sh /dev/sdb
-    /dev/sdb reader is identified.
-    ---------------------------------------
-    BL2 fusing
-    dd: failed to open '/dev/sdb': Permission denied
-    ---------------------------------------
-    u-boot fusing
-    dd: failed to open '/dev/sdb': Permission denied
-    ---------------------------------------
-    U-boot image is fused (at 22:45:28) successfully.
-    Eject SD card and insert it again.
     user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12/sd_fuse/tiny4412$ sudo ./fast_fuse.sh /dev/sdb
     [sudo] password for user: 
     /dev/sdb reader is identified.
@@ -376,6 +365,8 @@ linux 源码可以在 Tiny4412 附赠的光盘中获取，没有光盘的小伙�
 
 #### 2.6 给 linux 添加 .gitignore 文件
 
+原本内核都是自带 `,gitignore` 文件的，但是友善之臂提供的内核却没有，因此我们需要手动添加下忽略规则。
+
     user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ cp ../FriendlyARM.uboot-2010.12/.gitignore ./
 
 同样，参考 uboot 中修改 ignore 规则一样，还是有部分中间文件没有被忽略。因此将剩余的中间文件都追加到 .gitignore 文件中。并将忽略规则提交
@@ -449,7 +440,15 @@ UBOOT默认情况下是从SD卡的1057块开始读取内核映像。
 
 如果此时接了屏幕的话，还可以看到屏幕上出现企鹅图标。
 
-### 三 将 uboot 和内核从 SD 卡中拷贝到 EMMC 中
+### 三 构建根文件系统
+
+#### 3.1 获取 busybox
+
+可以从官网下载，也可以从
+
+
+
+### 四 将 uboot 和内核从 SD 卡中拷贝到 EMMC 中
 
 注意：SD 中有第 0 块不可用，EMMC 第 0 块是可用的，因此从 SD 到 EMMC 中烧的任何代码都需要减去 1
 SD 卡是从第一个块开始的， EMMC 是从第0个块开始的
