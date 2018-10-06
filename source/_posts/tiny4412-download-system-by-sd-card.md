@@ -53,7 +53,7 @@ categories: Tiny4412
 
 ### 通过 nfs 网络文件系统在 Ubuntu 和 Tiny4412 之间传输文件
 
-先查看下 ubunut 的 ip 地址
+先查看下 ubuntu 的 ip 地址
 
     user@vmware:~$ ifconfig
     ens33     Link encap:Ethernet  HWaddr 00:0c:29:d6:8f:01  
