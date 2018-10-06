@@ -73,10 +73,10 @@ uboot 源码和交叉工具链可以在 Tiny4412 附赠的光盘中获取，没�
     @@ -21,7 +21,7 @@
      # MA 02111-1307 USA
      #
-     
+
     -CROSS_COMPILE ?= arm-linux-
     +CROSS_COMPILE ?= /home/user/tiny4412/opt/FriendlyARM/toolschain/4.5.1/bin/arm-linux-
-     
+
      ifeq ($(BOARD),omap2420h4)
      STANDALONE_LOAD_ADDR = 0x80300000
     user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12$ git add --all
@@ -96,7 +96,7 @@ uboot 源码和交叉工具链可以在 Tiny4412 附赠的光盘中获取，没�
 
 确认到 u-boot.bin 镜像成功生成
 
-    user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12$ ls -l u-boot.bin 
+    user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12$ ls -l u-boot.bin
     -rw-rw-r-- 1 user user 276932 9月  23 22:36 u-boot.bin
 
 #### 1.6 给 u-boot 添加 .gitignore 文件
@@ -135,7 +135,7 @@ uboot 源码和交叉工具链可以在 Tiny4412 附赠的光盘中获取，没�
 
     user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12$ git add --all
     user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12$ git commit -m "conf: add the gitignore rule"
-    user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12$ git push origin 
+    user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12$ git push origin
 
 #### 1.7 烧写 uboot
 
@@ -154,12 +154,12 @@ sd 卡接入后
     /dev/sda  /dev/sda1  /dev/sda2  /dev/sda5  /dev/sdb  /dev/sdb1
 
 确认到 sd 卡是 `/dev/sdb` 节点后，就可以开始用脚本烧写了，但是烧写依赖 `mkbl2` 镜像，因此要先生成它。
-    
+
     user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12$ cd sd_fuse/
     user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12/sd_fuse$ ls
     Makefile  sd_fdisk.c  tiny4412  V310-EVT1-mkbl2.c
-    user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12/sd_fuse$ make 
-    gcc -o	mkbl2 V310-EVT1-mkbl2.c 
+    user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12/sd_fuse$ make
+    gcc -o	mkbl2 V310-EVT1-mkbl2.c
     gcc -o	sd_fdisk sd_fdisk.c
     user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12/sd_fuse$ ls
     Makefile  mkbl2  sd_fdisk  sd_fdisk.c  tiny4412  V310-EVT1-mkbl2.c
@@ -170,7 +170,7 @@ sd 卡接入后
     user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12/sd_fuse/tiny4412$ ls
     E4412_N.bl1.bin  E4412_tzsw.bin  fast_fuse.sh  sd_fusing.sh
     user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12/sd_fuse/tiny4412$ sudo ./fast_fuse.sh /dev/sdb
-    [sudo] password for user: 
+    [sudo] password for user:
     /dev/sdb reader is identified.
     ---------------------------------------
     BL2 fusing
@@ -216,11 +216,11 @@ sd 卡接入后
     *** Warning - using default environment
 
     Net:	No ethernet found.
-    Hit any key to stop autoboot:  0 
-    TINY4412 # 
-    TINY4412 # 
-    TINY4412 # 
-    TINY4412 # 
+    Hit any key to stop autoboot:  0
+    TINY4412 #
+    TINY4412 #
+    TINY4412 #
+    TINY4412 #
 
 ### 二 配置编译烧写 linux 内核
 
@@ -246,7 +246,7 @@ linux 源码可以在 Tiny4412 附赠的光盘中获取，没有光盘的小伙�
 
 解压 linux 源码，并将源码移动到仓库目录中进行管理
 
-    user@vmware:~/tiny4412$ tar zxf linux-3.5-20150929.tgz 
+    user@vmware:~/tiny4412$ tar zxf linux-3.5-20150929.tgz
     user@vmware:~/tiny4412$ mv linux-3.5/* FriendlyARM.linux-3.5/
 
 提交第一笔提交，记录最原始的 linux 源码状态
@@ -275,7 +275,7 @@ linux 源码可以在 Tiny4412 附赠的光盘中获取，没有光盘的小伙�
      ARCH           ?= arm
     -CROSS_COMPILE  ?= $(CONFIG_CROSS_COMPILE:"%"=%)
     +CROSS_COMPILE  ?= /home/user/tiny4412/opt/FriendlyARM/toolschain/4.5.1/bin/arm-linux-
-     
+
      # Architecture as present in compile.h
      UTS_MACHINE    := $(ARCH)
     user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git add --all
@@ -326,7 +326,7 @@ linux 源码可以在 Tiny4412 附赠的光盘中获取，没有光盘的小伙�
 报错了，不慌，百度了解到需要做如下修改
 
     user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git add kernel/timeconst.pl
-    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git diff --cached 
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git diff --cached
     diff --git a/kernel/timeconst.pl b/kernel/timeconst.pl
     old mode 100644
     new mode 100755
@@ -335,13 +335,13 @@ linux 源码可以在 Tiny4412 附赠的光盘中获取，没有光盘的小伙�
     +++ b/kernel/timeconst.pl
     @@ -370,7 +370,7 @@ if ($hz eq '--can') {
             }
-     
+
             @val = @{$canned_values{$hz}};
     -       if (!defined(@val)) {
     +       if (!@val) {
                     @val = compute_values($hz);
             }
-            output($hz, @val);user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git diff --cached 
+            output($hz, @val);user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git diff --cached
     diff --git a/kernel/timeconst.pl b/kernel/timeconst.pl
     old mode 100644
     new mode 100755
@@ -350,7 +350,7 @@ linux 源码可以在 Tiny4412 附赠的光盘中获取，没有光盘的小伙�
     +++ b/kernel/timeconst.pl
     @@ -370,7 +370,7 @@ if ($hz eq '--can') {
             }
-     
+
             @val = @{$canned_values{$hz}};
     -       if (!defined(@val)) {
     +       if (!@val) {
@@ -360,7 +360,7 @@ linux 源码可以在 Tiny4412 附赠的光盘中获取，没有光盘的小伙�
 
 修改好后重新 make 成功了，确认到成功生成内核镜像
 
-    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ ls -l arch/arm/boot/zImage 
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ ls -l arch/arm/boot/zImage
     -rwxrwxr-x 1 user user 4783472 9月  24 16:32 arch/arm/boot/zImage
 
 #### 2.6 给 linux 添加 .gitignore 文件
@@ -373,7 +373,7 @@ linux 源码可以在 Tiny4412 附赠的光盘中获取，没有光盘的小伙�
 
     user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git add --all
     user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git commit -m "conf: add the gitignore rule"
-    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git push origin 
+    user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ git push origin
 
 #### 2.7 烧写内核
 
@@ -385,7 +385,7 @@ UBOOT默认情况下是从SD卡的1057块开始读取内核映像。
 位置可以随意写，但是不能将前面的UBOOT代码覆盖掉。
 
     user@vmware:~/tiny4412/FriendlyARM.linux-3.5$ sudo dd iflag=dsync oflag=dsync if=arch/arm/boot/zImage of=/dev/sdb seek=1057
-    [sudo] password for user: 
+    [sudo] password for user:
     9342+1 records in
     9342+1 records out
     4783472 bytes (4.8 MB, 4.6 MiB) copied, 42.1633 s, 113 kB/s
@@ -420,11 +420,11 @@ UBOOT默认情况下是从SD卡的1057块开始读取内核映像。
     *** Warning - using default environment
 
     Net:	No ethernet found.
-    Hit any key to stop autoboot:  0 
-    reading kernel..device 0 Start 1057, Count 12288 
+    Hit any key to stop autoboot:  0
+    reading kernel..device 0 Start 1057, Count 12288
     MMC read: dev # 0, block # 1057, count 12288 ... 12288 blocks read: OK
     completed
-    reading RFS..device 0 Count 13345, Start 2048 
+    reading RFS..device 0 Count 13345, Start 2048
     MMC read: dev # 0, block # 13345, count 2048 ... 2048 blocks read: OK
     completed
     Boot with zImage
@@ -442,13 +442,291 @@ UBOOT默认情况下是从SD卡的1057块开始读取内核映像。
 
 ### 三 构建根文件系统
 
+我们知道 linux 中一切皆文件，linux 的运行少不了文件文件系统中的系统文件的支持，就好比 windows 电脑如果没有 c 盘中的 windows 系统文件，windows 系统也是无法运行起来的。因此要让我们自己编译的 linux 系统运行起来，必须提供系统需要的对应的系统文件，这些系统文件包括常用的可执行程序，如 ls、cd 等我们常用的命令的其他 linux 系统服务需要用到的配置文件。
+
+这里我们要用到 busybox 工具去生成我们自己的 linux 系统需要需要到的工具，以及通过拷贝我们使用的 ubuntu 主机上的配置文件作为我们班子上 linux 的配置文件，
+
 #### 3.1 获取 busybox
 
-可以从官网下载，也可以从
+可以从官网下载最新版本，也可以从我的 github 仓库中获取我本文使用的 busybox-1.23.2
 
+    user@vmware:~/tiny4412$ git clone git@github.com:tiny4412/FriendlyARM.tool.chain.git
 
+解压得到 busybox 源码
 
-### 四 将 uboot 和内核从 SD 卡中拷贝到 EMMC 中
+    user@vmware:~/tiny4412$ tar -jxvf busybox-1.23.2.tar.bz2
+    user@vmware:~/tiny4412$ ls
+    busybox-1.23.2          FriendlyARM.uboot-2010.12  FriendlyARM.tool.chain  opt
+    busybox-1.23.2.tar.bz2  FriendlyARM.source.code    FriendlyARM.linux-3.5
+
+#### 3.2 创建仓库管理根文件系统
+
+在 github 上创建一个名为 FriendlyARM.rootfs 的空仓库，克隆到本地
+
+    user@vmware:~/tiny4412$ git clone git@github.com:tiny4412/FriendlyARM.rootfs.git
+    Cloning into 'FriendlyARM.rootfs'...
+    warning: You appear to have cloned an empty repository.
+    Checking connectivity... done.
+
+#### 3.3 配置编译 busybox
+
+先配置 busybox，进入到解压目录下。敲 `make menuconfig` 命令进入图形配置菜单
+
+    user@vmware:~/tiny4412/busybox-1.23.2$ make menuconfig
+
+分别进行以下配置：
+
+- 配置 busybox 的编译器为 `/home/user/tiny4412/opt/FriendlyARM/toolschain/4.5.1/bin/arm-linux-`
+
+       Busybox Settings -->
+           Build Options -->
+               (/home/user/tiny4412/opt/FriendlyARM/toolschain/4.5.1/bin/arm-linux-) Cross Compiler prefix
+
+- 配置 busybox 编译安装的目录为 `/home/user/tiny4412/FriendlyARM.rootfs`
+
+       Busybox Settings -->
+           Installation Options ("make install" behavior) -->
+               (/home/user/tiny4412/FriendlyARM.rootfs) BusyBox installation prefix
+
+我在配置的时候，遇到 `BusyBox installation prefix` 无法编辑的情况，就是可以进入编辑框，但是无法删除原来的配置，退格键没有用。遇到这种情况的话，可以先执行 `make menuconfig` 生成 `.config` 配置文件，然后用文本编辑器手动修改下面两个宏为对应的值效果也是一样的。
+
+    user@vmware:~/tiny4412/busybox-1.23.2$ cat .config | grep tiny4412
+    CONFIG_CROSS_COMPILER_PREFIX="/home/user/tiny4412/opt/FriendlyARM/toolschain/4.5.1/bin/arm-linux-"
+    CONFIG_PREFIX="/home/user/tiny4412/FriendlyARM.rootfs"
+
+配置好后，开始编译安装 busybox
+
+    user@vmware:~/tiny4412/busybox-1.23.2$ make
+    user@vmware:~/tiny4412/busybox-1.23.2$ make install
+
+安装好后，将会在安装目标目录，也就是 make menuconfig 中指定的 `FriendlyARM.rootfs` 目录中生产以下文件
+
+    user@vmware:~/tiny4412/busybox-1.23.2$ cd ../FriendlyARM.rootfs/
+    user@vmware:~/tiny4412/FriendlyARM.rootfs$ ls
+    bin  linuxrc  sbin  usr
+
+使用 `ls -l` 查看下，不难看出，这些生成的可执行文件都是到 busybox 的链接
+
+    ls -l bin/* sbin/* usr/* linuxrc
+    lrwxrwxrwx 1 user user      7 9月  24 22:02 bin/cat -> busybox
+    lrwxrwxrwx 1 user user      7 9月  24 22:02 bin/chmod -> busybox
+    lrwxrwxrwx 1 user user      7 9月  24 22:02 bin/conspy -> busybox
+    lrwxrwxrwx 1 user user      7 9月  24 22:02 bin/cp -> busybox
+    lrwxrwxrwx 1 user user      7 9月  24 22:02 bin/dmesg -> busybox
+    lrwxrwxrwx 1 user user      7 9月  24 22:02 bin/echo -> busybox
+    lrwxrwxrwx 1 user user      7 9月  24 22:02 bin/grep -> busybox
+    lrwxrwxrwx 1 user user      7 9月  24 22:02 bin/gunzip -> busybox
+    lrwxrwxrwx 1 user user      7 9月  24 22:02 bin/gzip -> busybox
+    lrwxrwxrwx 1 user user      7 9月  24 22:02 bin/ln -> busybox
+    lrwxrwxrwx 1 user user      7 9月  24 22:02 bin/ls -> busybox
+    lrwxrwxrwx 1 user user      7 9月  24 22:02 bin/mv -> busybox
+    lrwxrwxrwx 1 user user      7 9月  24 22:02 bin/ping -> busybox
+    lrwxrwxrwx 1 user user     11 9月  24 22:02 linuxrc -> bin/busybox
+
+#### 3.4 制作根文件系统
+
+1. 完善 linux 系统根目录下的目录
+
+       user@vmware:~/tiny4412/FriendlyARM.rootfs$ mkdir -p lib dev etc/init.d home proc sys root opt tmp var mnt
+       user@vmware:~/tiny4412/FriendlyARM.rootfs$ ls
+       bin  dev  etc  home  lib  linuxrc  mnt  opt  proc  root  sbin  sys  tmp  usr  var
+
+2. 拷贝共享库到 rootfs/lib 目录下
+
+       user@vmware:~/tiny4412/FriendlyARM.rootfs$ cp -rfdv ../opt/FriendlyARM/toolschain/4.5.1/arm-none-linux-gnueabi/lib/* lib/
+
+3. 拷贝分组和密码文件到 rootfs/etc 目录下
+
+       user@vmware:~/tiny4412/FriendlyARM.rootfs$ cp /etc/group etc/
+       user@vmware:~/tiny4412/FriendlyARM.rootfs$ cp /etc/passwd etc/
+
+4. 创建 fstab 文件
+
+       user@vmware:~/tiny4412/FriendlyARM.rootfs$ cp /etc/fstab etc/
+
+5. 创建 inittab 文件
+
+       user@vmware:~/tiny4412/FriendlyARM.rootfs$ vim etc/inittab
+       user@vmware:~/tiny4412/FriendlyARM.rootfs$ cat etc/inittab 
+       ::sysinit:/etc/init.d/rcS
+       console::respawn:-/bin/sh
+       ::ctrlaltdel:/sbin/reboot
+       ::shutdown:/bin/umount -a -r
+
+   解释以上代码：
+
+       ::sysinit:/etc/init.d/rcS        # 定义系统上电执行的初始化文件。
+       console::respawn:-/bin/sh        # 指定控制台的脚本解释器和进入控制台的模式。可选的模式有
+                                        #     1. askfirst 进入命令行需要按回车键确认
+                                        #     2. respawn  进入命令行不需要按回车键确认
+       ::ctrlaltdel:/sbin/reboot        # 指定系统重启命令。
+       ::shutdown:/bin/umount -a -r     # 指定系统关机前执行的命令
+
+6. 创建 etc/init.d/rcS 文件
+
+       user@vmware:~/tiny4412/FriendlyARM.rootfs$ vim etc/init.d/rcS
+       user@vmware:~/tiny4412/FriendlyARM.rootfs$ cat etc/init.d/rcS 
+       #!/bin/sh
+       mount -a
+       mkdir /dev/pts
+       mount -t devpts devpts /dev/pts
+       echo /sbin/mdev > /proc/sys/kernel/hotplug
+       mdev -s
+       /bin/hostname Maziot
+
+   注意, rcS 文件是一个脚本文件，必须有可执行权限
+
+       user@vmware:~/tiny4412/FriendlyARM.rootfs$ chmod 777 etc/init.d/rcS 
+       user@vmware:~/tiny4412/FriendlyARM.rootfs$ ll etc/init.d/rcS 
+       -rwxrwxrwx 1 user user 130 10月  5 19:49 etc/init.d/rcS*
+
+   其中 `mdev -s` 命令会根据安装的驱动自动在 dev 目录下创建设备节点
+
+7. 创建 etc/profile 文件
+
+       user@vmware:~/tiny4412/FriendlyARM.rootfs$ vim etc/profile
+       user@vmware:~/tiny4412/FriendlyARM.rootfs$ cat etc/profile
+       USER="id-un"
+       LOGNAME=$USER
+       PS1='[\u@\h \w]\# '
+       PATH=$PATH
+       HOSTNAME='/bin/hostname'
+       export USER LOGNAME PS1 PATH
+
+    其中 PS1 环境变量保存的是当前命令行终端提示符显示的格式
+
+#### 3.5 将制作好的文件系统上传到 github 管理
+
+由于 git 默认不管理空目录，但是文件系统中一些的特定的目录结构是需要存在的，因此需要将空目录也提交的 github 上。参考[立体风的博客](https://www.cnblogs.com/litifeng/p/5852489.html)了解到，如要想要提交空目录 `mnt` 到 github 上，只需要在该目录下创建 `.gitkeep` 文件即可。
+
+    user@vmware:~/tiny4412/FriendlyARM.rootfs$ touch dev/.gitkeep home/.gitkeep opt/.gitkeep proc/.gitkeep sys/.gitkeep tmp/.gitkeep var/.gitkeep mnt/.gitkeep
+    user@vmware:~/tiny4412/FriendlyARM.rootfs$ git add --all
+    user@vmware:~/tiny4412/FriendlyARM.rootfs$ git commit -m "conf: create the root file system"
+    user@vmware:~/tiny4412/FriendlyARM.rootfs$ git push origin
+
+#### 3.6 配置 nfs 共享目录
+
+编辑 nfs 服务的配置文件，将 `/home/user/tiny4412/FriendlyARM.rootfs` 目录加入共享目录
+
+    user@vmware:~/tiny4412/FriendlyARM.rootfs$ sudo vim /etc/exports 
+    user@vmware:~/tiny4412/FriendlyARM.rootfs$ cat /etc/exports 
+    # /etc/exports: the access control list for filesystems which may be exported
+    #       to NFS clients.  See exports(5).
+    #
+    # Example for NFSv2 and NFSv3:
+    # /srv/homes       hostname1(rw,sync,no_subtree_check) hostname2(ro,sync,no_subtree_check)
+    #
+    # Example for NFSv4:
+    # /srv/nfs4        gss/krb5i(rw,sync,fsid=0,crossmnt,no_subtree_check)
+    # /srv/nfs4/homes  gss/krb5i(rw,sync,no_subtree_check)
+    #
+    /home/user/board/ *(rw,sync,no_root_squash)
+    /home/user/tiny4412/rootfs *(rw,no_root_squash,sync)
+    /home/user/tiny4412/FriendlyARM.rootfs *(rw,sync,no_root_squash)
+
+加入后重启 nfs 服务
+
+    user@vmware:~/tiny4412/FriendlyARM.rootfs$ sudo /etc/init.d/nfs-kernel-server restart
+    [ ok ] Restarting nfs-kernel-server (via systemctl): nfs-kernel-server.service.
+
+重启 nfs 服务后，本地验证下 nfs 配置是否生效
+
+    user@vmware:~/tiny4412$ sudo mount -t nfs 192.168.31.178:/home/user/tiny4412/FriendlyARM.rootfs /mnt -o nolock
+    user@vmware:~/tiny4412$ cd /mnt/
+    user@vmware:/mnt$ ls
+    bin  dev  etc  home  lib  linuxrc  opt  proc  root  sbin  sys  tmp  usr  var
+    user@vmware:/mnt$ touch fs1
+    user@vmware:/mnt$ cd -
+    /home/user/tiny4412
+    user@vmware:~/tiny4412$ cd FriendlyARM.rootfs/
+    user@vmware:~/tiny4412/FriendlyARM.rootfs$ ls
+    bin  dev  etc  fs1  home  lib  linuxrc  opt  proc  root  sbin  sys  tmp  usr  var
+    user@vmware:~/tiny4412/FriendlyARM.rootfs$ rm -rf fs1
+
+确认到配置是没问题的
+
+#### 3.7 设置 uboot 启动参数
+
+从 sd 启动，开机倒数计时按下 enter 进入 uboot 命令行，重新设置 bootargs 环境变量，设置为 nfs 方式挂载文件系统
+
+    Checking Boot Mode ... SDMMC
+    REVISION: 1.1
+    MMC Device 0: 7460 MB
+    MMC Device 1: 3728 MB
+    MMC Device 2: N/A
+    Net:	No ethernet found.
+    Hit any key to stop autoboot:  0 
+    TINY4412 # 
+    TINY4412 # setenv bootargs root=/dev/nfs nfsroot=192.168.31.178:/home/user/tiny4412/FriendlyARM.rootfs ip=192.168.31.199:192.168.31.178:192.168.31.1:255.255.255.0::eth0:off init=/linuxrc console=ttySAC0
+    TINY4412 # 
+    TINY4412 # saveenv
+    Saving Environment to SMDK bootable device...
+    done
+
+nfsroot 语法格式为：
+
+    <服务器IP地址>:<服务器上的文件目录> ip=<开发板IP地址>:<服务器IP地址>:<网关>:<子网掩码>::eth0:off
+
+#### 3.8 挂载文件系统启动 linux
+
+重启开发板，此时应该可以正常启动内核，正常情况下最后一段 log 为：
+
+    ... ...
+    [    7.325000] link_reset() speed: 10 duplex: 0
+    [    7.335000] IP-Config: Complete:
+    [    7.335000]      device=eth0, addr=192.168.31.199, mask=255.255.255.0, gw=192.168.31.1
+    [    7.335000]      host=192.168.31.199, domain=, nis-domain=(none)
+    [    7.335000]      bootserver=192.168.31.178, rootserver=192.168.31.178, rootpath=
+    [    7.335000] hotplug_policy_init: intialised with policy : DVFS_NR_BASED_HOTPLUG
+    [    7.345000] ALSA device list:
+    [    7.345000]   No soundcards found.
+    [    7.365000] VFS: Mounted root (nfs filesystem) on device 0:10.
+    [    7.365000] Freeing init memory: 212K
+    [root@Maziot /]#
+
+但是有的时候会出现问题
+
+- 情况1：卡死在 `No soundcards found` 这里，没有成功挂载到 nfs 文件系统  
+   这样情况需要重点检查 nfs 服务这块，nfs 服务配置是否正确，uboot 中 bootargs 是否设置正确
+
+- 情况2：卡死在 `Freeing init memory: 212K` 成功 mount 了文件系统，但是没有进入终端  
+   说实话，我也不清除具体的原因，这里我的排查方法是用同学做好的，可以正常启动的文件系统包做交叉实验，找到自己文件系统中哪些文件配置的不对
+
+同学做好的正常的文件系统我也放了一份到 `https://github.com/tiny4412/FriendlyARM.source.code.git` 仓库中，克隆下来将会得到 `rootfs-huangweizhong.tar.gz` 文件。先试试这个文件系统能否正常挂载
+
+    user@vmware:~/tiny4412$ tar zxvf rootfs-huangweizhong.tar.gz
+    user@vmware:~/tiny4412$ cd rootfs/
+    user@vmware:~/tiny4412/rootfs$ pwd
+    /home/user/tiny4412/rootfs
+
+设置 uboot 中 bootargs 以及 nfs 共享的目录
+
+    setenv bootargs root=/dev/nfs nfsroot=192.168.31.178:/home/user/tiny4412/FriendlyARM.rootfs ip=192.168.31.199:192.168.31.178:192.168.31.1:255.255.255.0::eth0:off init=/linuxrc console=ttySAC0
+
+确认到可以正常挂载，接下来就是找不同，看看具体是哪个配置的区别导致我自己做的文件系统挂载不上。  
+我在制作本文文件系统中就是遇到情况2的问题，卡死在 `Freeing init memory: 212K` 位置，最后通过交叉实验，确认到是 fstab 的问题。需要将 fstab 修改为：
+
+    user@vmware:~/tiny4412/FriendlyARM.rootfs$ cat etc/fstab 
+    #
+    # /etc/fstab
+    #
+    # Accessible filesystems, by reference, are maintained under '/dev/disk'
+    # See man pages fstab(5), findfs(8), mount(8) and/or blkid(8) for more info
+    #
+    /dev/mapper/VolGroup-lv_root                /           ext4    defaults        1 1
+    UUID=1d8cfac6-27f4-464f-9296-04d5bad1d7b2   /boot       ext4    defaults        1 2
+    /dev/mapper/VolGroup-lv_home                /home       ext4    defaults        1 2
+    /dev/mapper/VolGroup-lv_swap                swap        swap    defaults        0 0
+    tmpfs                                       /dev/shm    tmpfs   defaults        0 0
+    devpts                                      /dev/pts    devpts  gid=5,mode=620  0 0
+    sysfs                                       /sys        sysfs   defaults        0 0
+    proc                                        /proc       proc    defaults        0 0
+
+### 四 产品发布
+
+前面提到的在 tiny4412 上搭建 linux 环境基本已经可以运行了，使用的是 SD 启动挂载 nfs 网络文件系统，这样的方式好处是可以很方便的在 ubuntu 和 tiny4412 之前传输文件，但是我们最终的产品是要卖给用户的。我们不能强制用户要求插上启动用的 SD 卡，以及网线挂载网络文件系统。因此，最终，我们要将 uboot、kernel、fs 都要烧写到 EMMC 中，并在 EMMC 引导他们启动。
+
+#### 4.1 将 uboot 和内核从 SD 卡中拷贝到 EMMC 中
 
 注意：SD 中有第 0 块不可用，EMMC 第 0 块是可用的，因此从 SD 到 EMMC 中烧的任何代码都需要减去 1
 SD 卡是从第一个块开始的， EMMC 是从第0个块开始的
