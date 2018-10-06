@@ -164,26 +164,35 @@ sd 卡接入后
     user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12/sd_fuse$ ls
     Makefile  mkbl2  sd_fdisk  sd_fdisk.c  tiny4412  V310-EVT1-mkbl2.c
 
-执行烧写脚本烧写 uboot，使用方法为 `./fast_fuse.sh /dev/sdb`，值得注意的是，需要加 `sudo` 添超级权限才可以读写 sdb。
+执行烧写脚本烧写 uboot，使用方法为 `./sd_fusing.sh /dev/sdb`，值得注意的是，需要加 `sudo` 添超级权限才可以读写 sdb。
 
     user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12/sd_fuse$ cd tiny4412/
     user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12/sd_fuse/tiny4412$ ls
     E4412_N.bl1.bin  E4412_tzsw.bin  fast_fuse.sh  sd_fusing.sh
-    user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12/sd_fuse/tiny4412$ sudo ./fast_fuse.sh /dev/sdb
-    [sudo] password for user:
+    user@vmware:~/tiny4412/FriendlyARM.uboot-2010.12/sd_fuse/tiny4412$ sudo ./sd_fusing.sh /dev/sdb
     /dev/sdb reader is identified.
+    ---------------------------------------
+    BL1 fusing
+    16+0 records in
+    16+0 records out
+    8192 bytes (8.2 kB, 8.0 KiB) copied, 0.203274 s, 40.3 kB/s
     ---------------------------------------
     BL2 fusing
     28+0 records in
     28+0 records out
-    14336 bytes (14 kB, 14 KiB) copied, 0.308954 s, 46.4 kB/s
+    14336 bytes (14 kB, 14 KiB) copied, 0.444371 s, 32.3 kB/s
     ---------------------------------------
     u-boot fusing
-    540+1 records in
-    540+1 records out
-    276932 bytes (277 kB, 270 KiB) copied, 2.91917 s, 94.9 kB/s
+    541+1 records in
+    541+1 records out
+    276996 bytes (277 kB, 271 KiB) copied, 1.9351 s, 143 kB/s
     ---------------------------------------
-    U-boot image is fused (at 22:45:39) successfully.
+    TrustZone S/W fusing
+    184+0 records in
+    184+0 records out
+    94208 bytes (94 kB, 92 KiB) copied, 0.721558 s, 131 kB/s
+    ---------------------------------------
+    U-boot image is fused successfully.
     Eject SD card and insert it again.
 
 #### 1.8 用 sd 卡启动验证是否烧录成功
