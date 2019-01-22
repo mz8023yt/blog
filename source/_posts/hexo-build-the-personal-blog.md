@@ -19,8 +19,7 @@ categories: Hexo
 
 #### 2.1.2 下载 nodejs
 
-百度搜索 nodejs 或者直接点击访问 <https://nodejs.org/zh-cn/> nodejs 官网。  
-下载最新版本的版本的 nodejs，由于我使用的是 Ubuntu 平台，下载后在 ~/download 目录下有对应的 linux 版本 nodejs 压缩包。
+百度搜索 nodejs 或者直接点击访问 <https://nodejs.org/zh-cn/> nodejs 官网下载最新版本的版本的 nodejs，由于我使用的是 Ubuntu 平台，下载后在 ~/download 目录下有对应的 linux 版本 nodejs 压缩包。
 
 ```bash
 user@lenovo:~/download$ ls
@@ -29,7 +28,7 @@ node-v8.9.4-linux-x64.tar.xz
 
 #### 2.1.3 解压 nodejs
 
-这里我是直接在 ~/ 目录下创建了一个 ~/opt/ 目录，用来安装 nodejs 软件。
+这里我是直接在 `~/` 目录下创建了一个 `~/opt/` 目录，用来安装 nodejs 软件。
 
 ```bash
 user@lenovo:~$ mkdir opt
@@ -37,13 +36,12 @@ user@lenovo:~$ tar Jxf download/node-v8.9.4-linux-x64.tar.xz -C opt/
 ```
 
 为什么不直接将 nodejs 安装在 /opt 目录下呢？  
-其实我也是逼不得已，我之前确实是有将 nodejs 解压到 /opt 目录下，并成功配置好环境变量后，查看 nodejs 版本也是 ok 的。但是执行 npm install -g hexo 的时候，提示说没有权限，然而加上 sudo，还是不行，最后只能在自己 ~/ 目录下创建一个安装软件的 /opt 目录了。
+其实我也是逼不得已，我之前确实是有将 nodejs 解压到 `/opt` 目录下，并成功配置好环境变量后，查看 nodejs 版本也是 ok 的。但是执行 `npm install -g hexo` 的时候，提示说没有权限，然而加上 sudo，还是不行，最后只能在自己 `~/` 目录下创建一个安装软件的 `/opt` 目录了。
 
 #### 2.1.4 配置环境变量
 
-上述解压步骤执行完之后，nodejs 基本上就可以说是已经安装了，我们直接在 /home/user/opt/node-v8.9.4-linux-x64/bin 目录下敲 node 相关命令是可以执行的。但是在终端的其他的位置则无法使用 node 命令，原因其实很简单，我们在 shell 中执行的每一条命令都有其对应的可执行文件，理理论上要执行这些文件都需要切换到可执行文件对应的目录或者通过可执行文件的全路径指定。  
-可是这样实在是太麻烦了，linux 博大精深，不可能没有应对机制，shell 有一个机制，在 shell 中解析命令的时候，会先在当前目录下找命令的可执行文件，如果当前目录下找不到的话，则会根据 PATH 这个环境指定的目录灾区找可执行文件。  
-这就豁然开朗了，也就明nodejs白了为什么我们要配置环境变量了，为的是不管在哪一个目录下都可以直接使用 node 命令，而不需要指定 node 全路径。
+上述解压步骤执行完之后，nodejs 就已经安装好了，我们直接在 `/home/user/opt/node-v8.9.4-linux-x64/bin` 目录下敲 node 命令是可以执行的。但是在终端的其他的位置则无法使用 node 命令，原因其实很简单，我们在 shell 中执行的每一条命令都有其对应的可执行文件，理论上要执行这些文件都需要切换到可执行文件对应的目录或者通过可执行文件的全路径指定。可是这样实在是太麻烦了，linux 博大精深，不可能没有应对机制，shell 有一个机制，在 shell 中解析命令的时候，会先在当前目录下找命令的可执行文件，如果当前目录下找不到的话，则会根据 PATH 环境指定的目录再去找可执行文件。  
+这就豁然开朗了，也就明白了为什么我们要配置环境变量，为的是不管在哪一个目录下都可以直接使用 node 命令，而不需要指定 node 全路径。
 
 ```bash
 user@lenovo:~$ echo "export PATH=$PATH:/home/user/opt/node-v8.9.4-linux-x64/bin" >> .bashrc
@@ -158,6 +156,7 @@ tz: 2017b
 ```
 
 #### 2.3.3 获取 hexo 站点源文件
+
 安装 Hexo 完成后，请执行下列命令，Hexo 将会在指定文件夹中新建所需要的文件。
 
 ```bash
@@ -172,6 +171,7 @@ INFO  Start blogging with Hexo!
 ```
 
 #### 2.3.4 使用 git 管理网站源文件
+
 这一步不是必须的，但我还是觉得很有必要。  
 为什么我觉得很有必要，比如说换电脑了或者重装系统了，源码还是有备份的。
 
@@ -689,4 +689,4 @@ hexo 安装成功，并且正确运行，但是执行 hexo s 的时候，出现 
 hexo s -p 5000
 ```
 
-这里换成5000端口，访问 localhost:4000 正常访问。
+这里换成 5000 端口，访问 [localhost:5000](localhost:5000) 正常访问。
